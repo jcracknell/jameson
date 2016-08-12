@@ -18,8 +18,7 @@ sealed trait JLookup {
     */
   def apply(index: Int): JLookup
 
-  /** Attempts to retrieve the value at the specified path relative to the subject.
-    */
+  /** Attempts to retrieve the value at the specified path relative to the subject. */
   def apply(path: JPath): JLookup = path.resolve(this)
 
   /** Attempts to retrieve the value of the property with the specified name. Returns
