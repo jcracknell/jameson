@@ -4,6 +4,7 @@ import sbt.Keys._
 object JamesonBuild extends Build {
   lazy val `core` = (project in file("core"))
     .settings(
+      version := shell("git", "describe", "--tags", "--always", "--dirty"),
       scalaVersion := "2.11.8",
       scalacOptions := Seq(
         "-encoding", "UTF-8",
@@ -27,4 +28,10 @@ object JamesonBuild extends Build {
         )
       }
     )
+
+  def shell(cmd: String, args: String*): String = {
+    val proc = java.lang.Runtime.getRuntime.exec((cmd +: args).toArray)
+    proc.waitFor()
+    IO.readStream(proc.getInputStream, java.nio.charset.Charset.defaultCharset())
+  }
 }
