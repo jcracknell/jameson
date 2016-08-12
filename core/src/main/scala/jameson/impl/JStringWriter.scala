@@ -1,4 +1,5 @@
 package jameson
+package impl
 
 import java.io.Writer
 

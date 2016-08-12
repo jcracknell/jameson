@@ -1,4 +1,5 @@
 package jameson
+package impl
 
 import org.scalatest.{FunSpec, Matchers}
 

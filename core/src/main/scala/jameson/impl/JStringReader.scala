@@ -1,6 +1,8 @@
 package jameson
+package impl
 
 import java.io.Reader
+
 import scala.annotation.tailrec
 
 /** [[java.io.Reader]] implementation which decodes a JSON string from an underlying

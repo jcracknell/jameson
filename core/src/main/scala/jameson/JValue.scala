@@ -3,6 +3,8 @@ package jameson
 import jameson.util.IOUtil
 import java.io.{Reader, Writer}
 
+import jameson.impl.JStringWriter
+
 import scala.language.implicitConversions
 
 sealed trait JLookup {
