@@ -7,6 +7,10 @@ object JamesonBuild extends Build {
       scalaVersion := "2.11.8",
       scalacOptions := Seq(
         "-encoding", "UTF-8",
+        "-deprecation",
+        "-feature",
+        "-target:jvm-1.8",
+        "-Xlint",
         "-Ywarn-adapted-args",
         "-Ywarn-dead-code",
         "-Ywarn-inaccessible",
@@ -14,8 +18,7 @@ object JamesonBuild extends Build {
         "-Ywarn-nullary-unit",
         "-Ywarn-numeric-widen",
         "-Ywarn-unused",
-        "-Ywarn-unused-import",
-        "-Ywarn-value-discard"
+        "-Ywarn-unused-import"
       ),
       libraryDependencies <++= (scalaVersion) { (sv) =>
         Seq(
