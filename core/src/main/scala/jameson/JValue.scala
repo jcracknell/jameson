@@ -115,17 +115,13 @@ case class JString(value: String) extends JScalar with JScalarOf[String]
 object JString {
   def encode(reader: Reader, writer: Writer): Unit = {
     writer.write("\"")
-    using(new StreamingJStringWriter(writer)) { jsw =>
-      IOUtil.copy(reader, jsw)
-    }
+    IOUtil.copy(reader, new StreamingJStringWriter(writer))
     writer.write("\"")
   }
 
-  def encode(str: CharSequence, writer: Writer): Unit = {
+  def encode(str: String, writer: Writer): Unit = {
     writer.write("\"")
-    using(new StreamingJStringWriter(writer)) { jsw =>
-      jsw.write(str.toString)
-    }
+    new StreamingJStringWriter(writer).write(str)
     writer.write("\"")
   }
 
