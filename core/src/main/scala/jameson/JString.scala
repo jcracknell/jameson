@@ -2,18 +2,31 @@ package jameson
 
 import java.io.{Reader, Writer}
 
+import jameson.util.IOUtil
+
 object JString {
-  def encode(str: CharSequence, writer: Writer): Unit = {
+  def encode(reader: Reader, writer: Writer): Unit = {
     writer.write("\"")
-    using(new JStringWriter(writer)) { writer =>
-      writer.write(str.toString)
+    using(new JStringWriter(writer)) { jsw =>
+      IOUtil.copy(reader, jsw)
     }
     writer.write("\"")
   }
 
-  def encode(str: CharSequence): String = {
+  def encode(str: CharSequence, writer: Writer): Unit = {
+    writer.write("\"")
+    using(new JStringWriter(writer)) { jsw =>
+      jsw.write(str.toString)
+    }
+    writer.write("\"")
+  }
+
+  def encode(reader: Reader): String = {
     val sw = new java.io.StringWriter
-    encode(str, sw)
+    encode(reader, sw)
     sw.toString
   }
+
+  def encode(str: CharSequence): String =
+    encode(new java.io.StringReader(str.toString))
 }
