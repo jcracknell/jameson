@@ -4,7 +4,7 @@ import sbt.Keys._
 object JamesonBuild extends Build {
   lazy val `core` = (project in file("core"))
     .settings(
-      version := shell("git", "describe", "--tags", "--always", "--dirty"),
+      version := shell("git", "describe", "--tags", "--always", "--dirty").trim(),
       scalaVersion := "2.11.8",
       scalacOptions := Seq(
         "-encoding", "UTF-8",
