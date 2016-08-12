@@ -33,7 +33,7 @@ class JStringWriterSpec extends FunSpec with Matchers {
       write("\u00e9") should be ("\u00e9")
     }
     it("should escape non-ASCII characters when configured to do so") {
-      write("\u00e9", new JStringWriter.defaultOptions { override def escapeNonASCII: Boolean = true }) should be ("\\u00e9")
+      write("\u00e9", new JStringWriter.Options { def escapeNonASCII: Boolean = true }) should be ("\\u00e9")
     }
   }
 }
