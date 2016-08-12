@@ -3,6 +3,8 @@ package impl
 
 import java.io.Reader
 
+import jameson.util.IOUtil
+
 import scala.annotation.tailrec
 
 /** [[java.io.Reader]] implementation which decodes a JSON string from an underlying
@@ -10,13 +12,12 @@ import scala.annotation.tailrec
   * is encountered. Note that the leading quotation mark should have been consumed
   * from the reader.
   */
-class StreamingJStringReader(reader: Reader) extends Reader {
+class StreamingJStringReader(reader: Reader) extends JStringReader {
   private var ended = false
   private var closed = false
 
   override def read(chars: Array[Char], offset: Int, length: Int): Int = {
-    if(closed)
-      throw new UnsupportedOperationException(s"Attempt to access closed ${getClass.getName}.")
+    assertOpen()
 
     val end = offset + length
     @tailrec def loop(i: Int): Int = if(i >= end) i - offset else {
@@ -30,8 +31,7 @@ class StreamingJStringReader(reader: Reader) extends Reader {
   }
 
   override def read(): Int = {
-    if(closed)
-      throw new UnsupportedOperationException(s"Attempt to access closed ${getClass.getName}.")
+    assertOpen()
 
     if(ended) -1 else reader.read() match {
       case 0x5C => readEscape()
@@ -85,16 +85,30 @@ class StreamingJStringReader(reader: Reader) extends Reader {
     dec(reader.read()) << 12 | dec(reader.read()) << 8 | dec(reader.read()) << 4 | dec(reader.read())
   }
 
-  /** Consumes the reader, discarding any further content. */
-  def discard(): Unit = while(read() >= 0) {}
+  def discard(): Unit = {
+    assertOpen()
+
+    val buffer = Array.ofDim[Char](128)
+    while(read(buffer, 0, buffer.length) > 0) {}
+  }
+
+  def copy(): JString = {
+    assertOpen()
+
+    val sw = new java.io.StringWriter(128)
+    IOUtil.copy(this, sw, 128)
+    new JString(sw.toString)
+  }
 
   /** Closes the reader, preventing any further access to public methods.
     * Throws an exception in the event that the reader has not been fully consumed.
     */
   override def close(): Unit = {
-    if(!ended)
-      throw new UnsupportedOperationException(s"Attempt to close unconsumed ${getClass.getName}.")
+    if(!ended) throw new UnsupportedOperationException("Attempt to close unconsumed JStringReader.")
 
     closed = true
   }
+
+  @inline private def assertOpen(): Unit =
+    if(closed) throw new UnsupportedOperationException("Attempt to access closed JStringReader.")
 }

@@ -43,6 +43,20 @@ sealed trait JValue extends JLookup {
   def isUndefined: Boolean = false
 }
 
+sealed trait JReader {
+  /** Consumes the reader, discarding any further content. */
+  def discard(): Unit
+
+  /** Consumes the reader, marshaling its contents to the equivalent [[JValue]]
+    * representation.
+    */
+  def copy(): JValue
+}
+
+trait JReaderOf[+V <: JValue] { _: JReader =>
+  def copy(): V
+}
+
 sealed trait JScalar extends JValue {
   /** Get the native representation of this scalar JSON value. */
   def value: Any
@@ -113,6 +127,8 @@ object JNumber {
 case class JString(value: String) extends JScalar with JScalarOf[String]
 
 object JString {
+  val empty: JString = new JString("")
+
   def encode(reader: Reader, writer: Writer): Unit = {
     writer.write("\"")
     IOUtil.copy(reader, new StreamingJStringWriter(writer))
@@ -134,3 +150,5 @@ object JString {
   def encode(str: CharSequence): String =
     encode(new java.io.StringReader(str.toString))
 }
+
+trait JStringReader extends Reader with JReader with JReaderOf[JString]
