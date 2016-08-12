@@ -3,10 +3,10 @@ package impl
 
 import org.scalatest.{FunSpec, Matchers}
 
-class JStringWriterSpec extends FunSpec with Matchers {
-  def write(str: String, options: JStringWriter.Options = JStringWriter.defaultOptions): String = {
+class StreamingJStringWriterSpec extends FunSpec with Matchers {
+  def write(str: String, options: StreamingJStringWriter.Options = StreamingJStringWriter.defaultOptions): String = {
     val sw = new java.io.StringWriter
-    using(new JStringWriter(sw, options)) { writer =>
+    using(new StreamingJStringWriter(sw, options)) { writer =>
       writer.write(str)
     }
     sw.toString
@@ -34,7 +34,7 @@ class JStringWriterSpec extends FunSpec with Matchers {
       write("\u00e9") should be ("\u00e9")
     }
     it("should escape non-ASCII characters when configured to do so") {
-      write("\u00e9", new JStringWriter.Options { def escapeNonASCII: Boolean = true }) should be ("\\u00e9")
+      write("\u00e9", new StreamingJStringWriter.Options { def escapeNonASCII: Boolean = true }) should be ("\\u00e9")
     }
   }
 }

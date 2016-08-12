@@ -10,7 +10,7 @@ import scala.annotation.tailrec
   * is encountered. Note that the leading quotation mark should have been consumed
   * from the reader.
   */
-class JStringReader(reader: Reader) extends Reader {
+class StreamingJStringReader(reader: Reader) extends Reader {
   private var ended = false
   private var closed = false
 

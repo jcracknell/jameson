@@ -1,9 +1,8 @@
 package jameson
 
+import jameson.impl.StreamingJStringWriter
 import jameson.util.IOUtil
 import java.io.{Reader, Writer}
-
-import jameson.impl.JStringWriter
 
 import scala.language.implicitConversions
 
@@ -116,7 +115,7 @@ case class JString(value: String) extends JScalar with JScalarOf[String]
 object JString {
   def encode(reader: Reader, writer: Writer): Unit = {
     writer.write("\"")
-    using(new JStringWriter(writer)) { jsw =>
+    using(new StreamingJStringWriter(writer)) { jsw =>
       IOUtil.copy(reader, jsw)
     }
     writer.write("\"")
@@ -124,7 +123,7 @@ object JString {
 
   def encode(str: CharSequence, writer: Writer): Unit = {
     writer.write("\"")
-    using(new JStringWriter(writer)) { jsw =>
+    using(new StreamingJStringWriter(writer)) { jsw =>
       jsw.write(str.toString)
     }
     writer.write("\"")
