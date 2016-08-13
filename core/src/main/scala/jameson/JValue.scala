@@ -3,6 +3,7 @@ package jameson
 import jameson.impl._
 import jameson.util.IOUtil
 import java.io.{Reader, Writer}
+import scala.collection.{immutable => sci}
 
 import scala.language.implicitConversions
 
@@ -41,6 +42,7 @@ case object JUndefined extends JLookup {
 
 sealed trait JValue extends JLookup {
   def isUndefined: Boolean = false
+  // TODO: loan control
   def reader: JReader
 }
 
@@ -174,10 +176,12 @@ trait JStringReader extends Reader with JReader {
 }
 
 class JArray(val elements: scala.collection.immutable.IndexedSeq[JValue]) extends JValue {
-  def reader: JArrayReader = new InstanceJArrayReader(this)
-
   def apply(name: String): JLookup = JUndefined
   def apply(index: Int): JLookup = if(elements.isDefinedAt(index)) elements(index) else JUndefined
+
+  def length: Int = elements.length
+
+  def reader: JArrayReader = new InstanceJArrayReader(this)
 
   override def hashCode(): Int = elements.hashCode()
 
@@ -201,13 +205,82 @@ object JArray {
 
 trait JArrayReader extends JReader with JReaderOf[JArray] with AutoCloseable {
   /** Consumes the reader, returning the array elements matched by the provided collector. */
-  def collect[A](collector: PartialFunction[JValue, A]): Seq[A]
+  def collect[A](collector: PartialFunction[JReader, A]): Seq[A]
 
   /** Consumes the reader, returning the array elements matched by the provided collector. */
-  def collectIndexed[A](collector: PartialFunction[(Int, JValue), A]): Seq[A]
+  def collectIndexed[A](collector: PartialFunction[(Int, JReader), A]): Seq[A]
 
-  def map[A](projection: JValue => A): IndexedSeq[A]
-  def mapIndexed[A](projection: (Int, JValue) => A): IndexedSeq[A]
-  def partition[A](collector: PartialFunction[JValue, A]): (Seq[A], Seq[JValue])
-  def partitionIndexed[A](collector: PartialFunction[(Int, JValue), A]): (Seq[A], Seq[(Int, JValue)])
+  def map[A](projection: JReader => A): IndexedSeq[A]
+  def mapIndexed[A](projection: (Int, JReader) => A): IndexedSeq[A]
+  def partition[A](collector: PartialFunction[JReader, A]): (Seq[A], Seq[JValue])
+  def partitionIndexed[A](collector: PartialFunction[(Int, JReader), A]): (Seq[A], Seq[(Int, JValue)])
+}
+
+class JObject protected (
+  val seq: sci.Seq[(String, JValue)],
+  val map: sci.Map[String, JValue]
+) extends JValue {
+  def reader[A](loan: JReader => A): A = using(new InstanceJObjectReader(this))(loan)
+
+  def apply(name: String): JLookup = map.get(name) match {
+    case Some(v) => v
+    case None => JUndefined
+  }
+
+  def apply(index: Int): JLookup = JUndefined
+
+  def reader: JObjectReader = new InstanceJObjectReader(this)
+
+  override def hashCode(): Int = seq.hashCode()
+
+  override def equals(obj: Any): Boolean = obj match {
+    case that: JObject => this.seq == that.seq
+    case _ => false
+  }
+
+  override def toString: String =
+    seq.iterator.map({ case (n, v) => JString.encode(n) + ": " + v.toString }).mkString("JObject(", ", ", ")")
+}
+
+object JObject {
+  val empty: JObject = new JObject(Vector.empty, Map.empty)
+
+  def apply(): JObject = empty
+  def apply(m0: (String, JValue), ms: (String, JValue)*): JObject = builder.add(m0).add(ms).result
+  def apply(map: Map[String, JValue]): JObject = new JObject(map.to[sci.Seq], map)
+  def apply(seq: Seq[(String, JValue)]): JObject = builder.add(seq).result
+
+  def unapplySeq(o: JObject): Option[Seq[(String, JValue)]] = if(o == null) None else Some(o.seq)
+
+  def builder: Builder = builder(JObject.empty)
+  def builder(o: JObject): Builder = new BuilderImpl(o.seq, o.map)
+
+  trait Builder {
+    def result: JObject
+    def add(m: (String, JValue)): Builder
+    def add(ms: Iterable[(String, JValue)]): Builder = ms.foldLeft(this)(_ add _)
+    def add(m0: (String, JValue), ms: (String, JValue)*): Builder = add(m0).add(ms)
+  }
+
+  protected class BuilderImpl(
+    protected var seq: sci.Seq[(String, JValue)],
+    protected var map: sci.Map[String, JValue]
+  ) extends Builder {
+    def result: JObject = new JObject(seq, map)
+
+    def add(m: (String, JValue)): Builder = {
+      val key = m._1
+      if(map.contains(key)) {
+        seq = seq.filter(_._1 != key) :+ m
+      } else {
+        seq :+= m
+      }
+      map += m
+      this
+    }
+  }
+}
+
+trait JObjectReader extends JReader with JReaderOf[JObject] with AutoCloseable {
+  def collect[A](collector: PartialFunction[(String, JReader), A]): Seq[A]
 }
