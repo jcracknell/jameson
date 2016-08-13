@@ -3,8 +3,8 @@ package impl
 
 import org.scalatest.{FunSpec, Matchers}
 
-class StreamingJStringReaderSpec extends FunSpec with Matchers {
-  def read(str: String): String = using(new StreamingJStringReader(new java.io.StringReader(str))) { reader =>
+class ParsingJStringReaderSpec extends FunSpec with Matchers {
+  def read(str: String): String = using(new ParsingJStringReader(new java.io.StringReader(str))) { reader =>
     val sb = new java.lang.StringBuilder
     val buffer = Array.ofDim[Char](1024)
     def loop(): String = {
