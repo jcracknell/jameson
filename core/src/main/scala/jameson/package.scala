@@ -1,3 +1,5 @@
+import scala.language.implicitConversions
+
 package object jameson {
   // TODO: macro
   private[jameson] def using[A <: AutoCloseable, B](resource: A)(loan: A => B): B = {
@@ -11,4 +13,6 @@ package object jameson {
       }
     }
   }
+
+  private[jameson] implicit def jamesonStringOps(str: String): jameson.util.JamesonStringOps = new jameson.util.JamesonStringOps(str)
 }
