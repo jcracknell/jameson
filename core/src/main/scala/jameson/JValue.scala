@@ -45,13 +45,19 @@ sealed trait JValue extends JLookup {
 }
 
 sealed trait JReader {
-  /** Consumes the reader, discarding any further content. */
-  def discard(): Unit
-
   /** Consumes the reader, marshaling its contents to the equivalent [[JValue]]
     * representation.
     */
   def copy(): JValue
+
+  /** Consumes the reader, discarding any further content. */
+  def discard(): Unit
+
+  /** Convenience method. Invokes `discard` and returns the provided value. */
+  def discard[A](a: A): A = {
+    discard()
+    a
+  }
 }
 
 trait JReaderOf[+J <: JValue] { _: JReader =>
@@ -165,4 +171,43 @@ object JString {
 
 trait JStringReader extends Reader with JReader {
   def copy(): JString
+}
+
+class JArray(val elements: scala.collection.immutable.IndexedSeq[JValue]) extends JValue {
+  def reader: JArrayReader = new InstanceJArrayReader(this)
+
+  def apply(name: String): JLookup = JUndefined
+  def apply(index: Int): JLookup = if(elements.isDefinedAt(index)) elements(index) else JUndefined
+
+  override def hashCode(): Int = elements.hashCode()
+
+  override def equals(obj: Any): Boolean = obj match {
+    case that: JArray => this.elements == that.elements
+    case _ => false
+  }
+
+  override def toString: String = elements.mkString("JArray(", ", ", ")")
+}
+
+object JArray {
+  val empty: JArray = new JArray(Vector.empty)
+
+  def apply(): JArray = empty
+  def apply(es: Seq[JValue]): JArray = new JArray(es.toVector)
+  def apply(e0: JValue, es: JValue*): JArray = apply(e0 +: es)
+
+  def unapplySeq(a: JArray): Option[IndexedSeq[JValue]] = if(a == null) None else Some(a.elements)
+}
+
+trait JArrayReader extends JReader with JReaderOf[JArray] with AutoCloseable {
+  /** Consumes the reader, returning the array elements matched by the provided collector. */
+  def collect[A](collector: PartialFunction[JValue, A]): Seq[A]
+
+  /** Consumes the reader, returning the array elements matched by the provided collector. */
+  def collectIndexed[A](collector: PartialFunction[(Int, JValue), A]): Seq[A]
+
+  def map[A](projection: JValue => A): IndexedSeq[A]
+  def mapIndexed[A](projection: (Int, JValue) => A): IndexedSeq[A]
+  def partition[A](collector: PartialFunction[JValue, A]): (Seq[A], Seq[JValue])
+  def partitionIndexed[A](collector: PartialFunction[(Int, JValue), A]): (Seq[A], Seq[(Int, JValue)])
 }
