@@ -4,19 +4,27 @@ import org.scalatest.{FunSpec, Matchers}
 
 class JPathSpec extends FunSpec with Matchers {
   describe("toString") {
-    it("should correctly represent the base path") {
-      JPath.Base.toString should be (".")
+    it("should correctly represent the relative base path") {
+      JPath.relative.toString should be (".")
     }
+    it("should correctly represent the unknown base path") {
+      JPath.stream.toString should be ("<?>#.")
+    }
+    it("should correctly represent a uri base path") {
+      JPath.uri("https://github.com/jcracknell/jameson").toString should be ("https://github.com/jcracknell/jameson#.")
+    }
+  }
+  describe("pathString") {
     it("should correctly represent indexes") {
-      JPath(_/0).toString should be (".[0]")
-      JPath(_/1).toString should be (".[1]")
+      (JPath.relative/0).pathString should be (".[0]")
+      (JPath.relative/1).pathString should be (".[1]")
     }
     it("should correctly represent properties") {
-      JPath(_/"a").toString should be (""".["a"]""")
-      JPath(_/"foo").toString should be (""".["foo"]""")
+      (JPath.relative/"a").pathString should be (""".["a"]""")
+      (JPath.relative/"foo").pathString should be (""".["foo"]""")
     }
     it("should correctly represent mixed paths") {
-      JPath(_/"foo"/0/"baz").toString should be (""".["foo"][0]["baz"]""")
+      (JPath.relative/"foo"/0/"baz").pathString should be (""".["foo"][0]["baz"]""")
     }
   }
 }
