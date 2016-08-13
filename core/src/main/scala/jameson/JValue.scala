@@ -1,6 +1,6 @@
 package jameson
 
-import jameson.impl.StreamingJStringWriter
+import jameson.impl._
 import jameson.util.IOUtil
 import java.io.{Reader, Writer}
 
@@ -41,6 +41,7 @@ case object JUndefined extends JLookup {
 
 sealed trait JValue extends JLookup {
   def isUndefined: Boolean = false
+  def reader: JReader
 }
 
 sealed trait JReader {
@@ -53,8 +54,8 @@ sealed trait JReader {
   def copy(): JValue
 }
 
-trait JReaderOf[+V <: JValue] { _: JReader =>
-  def copy(): V
+trait JReaderOf[+J <: JValue] { _: JReader =>
+  override def copy(): J
 }
 
 sealed trait JScalar extends JValue {
@@ -66,18 +67,27 @@ sealed trait JScalar extends JValue {
 }
 
 trait JScalarOf[+V] { _: JScalar =>
-  def value: V
+  override def value: V
 }
 
 object JScalarOf {
   implicit def ordering[A](implicit vo: Ordering[A]): Ordering[JScalarOf[A]] = Ordering.by(_.value)
 }
 
-case object JNull extends JScalar with JScalarOf[Null] {
+trait JAtom[+V, +J <: JAtom[V, J]] extends JScalar with JScalarOf[V]
+                                      with JReader with JReaderOf[J]
+{
+  def reader: J = this.asInstanceOf[J]
+  def discard(): Unit = { }
+  def copy(): J = this.asInstanceOf[J]
+}
+
+case object JNull extends JNull
+sealed trait JNull extends JAtom[Null, JNull] {
   def value: Null = null
 }
 
-sealed trait JBoolean extends JScalar with JScalarOf[Boolean]
+sealed trait JBoolean extends JAtom[Boolean, JBoolean]
 
 object JBoolean {
   def apply(value: Boolean): JBoolean = if(value) JTrue else JFalse
@@ -92,7 +102,7 @@ case object JFalse extends JBoolean {
   def value: Boolean = false
 }
 
-class JNumber(val value: Double) extends JScalar with JScalarOf[Double] {
+class JNumber(val value: Double) extends JAtom[Double, JNumber] {
   def unary_- : JNumber = new JNumber(-value)
   def + (r: JNumber.Repr): JNumber = new JNumber(this.value + r.value)
   def - (r: JNumber.Repr): JNumber = new JNumber(this.value - r.value)
@@ -124,7 +134,9 @@ object JNumber {
   }
 }
 
-case class JString(value: String) extends JScalar with JScalarOf[String]
+case class JString(value: String) extends JScalar with JScalarOf[String] {
+  def reader: JStringReader = new InstanceJStringReader(value)
+}
 
 object JString {
   val empty: JString = new JString("")
@@ -151,4 +163,6 @@ object JString {
     encode(new java.io.StringReader(str.toString))
 }
 
-trait JStringReader extends Reader with JReader with JReaderOf[JString]
+trait JStringReader extends Reader with JReader {
+  def copy(): JString
+}
