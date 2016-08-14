@@ -203,7 +203,7 @@ object JArray {
   def unapplySeq(a: JArray): Option[IndexedSeq[JValue]] = if(a == null) None else Some(a.elements)
 }
 
-trait JArrayReader extends JReader with JReaderOf[JArray] with AutoCloseable {
+trait JArrayReader extends JReader with JReaderOf[JArray] {
   /** Consumes the reader, returning the array elements matched by the provided collector. */
   def collect[A](collector: PartialFunction[JReader, A]): Seq[A]
 
@@ -281,6 +281,6 @@ object JObject {
   }
 }
 
-trait JObjectReader extends JReader with JReaderOf[JObject] with AutoCloseable {
+trait JObjectReader extends JReader with JReaderOf[JObject] {
   def collect[A](collector: PartialFunction[(String, JReader), A]): Seq[A]
 }
