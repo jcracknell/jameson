@@ -3,10 +3,14 @@ package impl
 import scala.collection.mutable
 
 class InstanceJArrayReader(arr: JArray) extends BaseJArrayReader {
-  override protected def foreach(f: JReader => Unit): Unit = {
+  override protected def foreach(f: (Int, JReader) => Unit): Unit = {
     guard()
 
-    arr.elements foreach { value => f(value.reader) }
+    var i = 0
+    arr.elements foreach { value =>
+      f(i, value.reader)
+      i += 1
+    }
   }
 
   override protected def indexedSeqBuilder[A]: mutable.Builder[A, IndexedSeq[A]] = {

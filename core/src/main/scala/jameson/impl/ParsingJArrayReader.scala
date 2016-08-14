@@ -4,7 +4,7 @@ package impl
 import Parser._
 
 class ParsingJArrayReader(ctx: ParsingContext) extends BaseJArrayReader {
-  protected def foreach(f: (JReader) => Unit): Unit = {
+  protected def foreach(f: (Int, JReader) => Unit): Unit = {
     var i = 0
 
     ctx.require('[')
@@ -12,7 +12,7 @@ class ParsingJArrayReader(ctx: ParsingContext) extends BaseJArrayReader {
     if(whitespace(ctx) && !ctx.ahead(']')) do {
       ctx.path(i)
       value(ctx) { valueReader =>
-        f(valueReader)
+        f(i, valueReader)
       }
       ctx.pathUp()
 

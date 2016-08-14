@@ -5,7 +5,7 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
   private var closed = false
   private var consumed = false
 
-  protected def foreach(f: JReader => Unit): Unit
+  protected def foreach(f: (Int, JReader) => Unit): Unit
 
   protected def seqBuilder[A]: scala.collection.mutable.Builder[A, Seq[A]] = Vector.newBuilder[A]
   protected def indexedSeqBuilder[A]: scala.collection.mutable.Builder[A, IndexedSeq[A]] = Vector.newBuilder[A]
@@ -14,9 +14,12 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
     guard()
 
     val builder = seqBuilder[A]
-    for(v <- this) {
-      if(collector.isDefinedAt(v))
-        builder += collector(v)
+    foreach { (i, valueReader) =>
+      if(collector.isDefinedAt(valueReader)) {
+        builder += collector(valueReader)
+      } else {
+        valueReader.discard()
+      }
     }
     builder.result()
   }
@@ -24,14 +27,14 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
   def collectIndexed[A](collector: PartialFunction[(Int, JReader), A]): Seq[A] = {
     guard()
 
-    var i = 0
     val builder = seqBuilder[A]
-    for(v <- this) {
-      val tup = (i, v)
+    foreach { (i, valueReader) =>
+      val tup = (i, valueReader)
       if(collector.isDefinedAt(tup)) {
         builder += collector(tup)
+      } else {
+        valueReader.discard()
       }
-      i += 1
     }
     builder.result()
   }
@@ -40,8 +43,8 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
     guard()
 
     val builder = indexedSeqBuilder[A]
-    for(v <- this) {
-      builder += projection(v)
+    foreach { (i, valueReader) =>
+      builder += projection(valueReader)
     }
     builder.result()
   }
@@ -49,11 +52,9 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
   def mapIndexed[A](projection: (Int, JReader) => A): IndexedSeq[A] = {
     guard()
 
-    var i = 0
     val builder = indexedSeqBuilder[A]
-    for(v <- this) {
-      builder += projection(i, v)
-      i += 1
+    foreach { (i, valueReader) =>
+      builder += projection(i, valueReader)
     }
     builder.result()
   }
@@ -63,11 +64,11 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
 
     val matched = seqBuilder[A]
     val unmatched = seqBuilder[JValue]
-    for(v <- this) {
-      if(collector.isDefinedAt(v)) {
-        matched += collector(v)
+    foreach { (i, valueReader) =>
+      if(collector.isDefinedAt(valueReader)) {
+        matched += collector(valueReader)
       } else {
-        unmatched += v.copy()
+        unmatched += valueReader.copy()
       }
     }
     (matched.result(), unmatched.result())
@@ -76,17 +77,15 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
   def partitionIndexed[A](collector: PartialFunction[(Int, JReader), A]): (Seq[A], Seq[(Int, JValue)]) = {
     guard()
 
-    var i = 0
     val matched = seqBuilder[A]
     val unmatched = seqBuilder[(Int, JValue)]
-    for(v <- this) {
-      val tup = (i, v)
+    foreach { (i, valueReader) =>
+      val tup = (i, valueReader)
       if(collector.isDefinedAt(tup)) {
         matched += collector(tup)
       } else {
-        unmatched += ((i, v.copy()))
+        unmatched += ((i, valueReader.copy()))
       }
-      i += 1
     }
     (matched.result(), unmatched.result())
   }
@@ -95,16 +94,19 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
     guard()
 
     val builder = indexedSeqBuilder[JValue]
-    foreach { reader =>
-      builder += reader.copy()
+    foreach { (i, valueReader) =>
+      builder += valueReader.copy()
     }
+
     JArray(builder.result())
   }
 
   def discard(): Unit = {
     guard()
 
-    foreach(_.discard())
+    foreach { (_, valueReader) =>
+      valueReader.discard()
+    }
   }
 
   def close(): Unit = {
