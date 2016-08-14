@@ -62,10 +62,6 @@ sealed trait JReader {
   }
 }
 
-trait JReaderOf[+J <: JValue] { _: JReader =>
-  override def copy(): J
-}
-
 sealed trait JScalar extends JValue {
   /** Get the native representation of this scalar JSON value. */
   def value: Any
@@ -74,32 +70,25 @@ sealed trait JScalar extends JValue {
   def apply(index: Int): JLookup = JUndefined
 }
 
-trait JScalarOf[+V] { _: JScalar =>
-  override def value: V
-}
-
-object JScalarOf {
-  implicit def ordering[A](implicit vo: Ordering[A]): Ordering[JScalarOf[A]] = Ordering.by(_.value)
-}
-
-trait JAtom[+V, +J <: JAtom[V, J]] extends JScalar with JScalarOf[V]
-                                      with JReader with JReaderOf[J]
-{
-  def reader: J = this.asInstanceOf[J]
-  def discard(): Unit = { }
-  def copy(): J = this.asInstanceOf[J]
-}
-
-case object JNull extends JNull
-sealed trait JNull extends JAtom[Null, JNull] {
+case object JNull extends JScalar with JReader {
   def value: Null = null
+  def reader: JReader = this
+  def copy(): JNull.type = this
+  def discard(): Unit = { }
 }
 
-sealed trait JBoolean extends JAtom[Boolean, JBoolean]
+sealed trait JBoolean extends JScalar with JReader {
+  def value: Boolean
+  def reader: JReader = this
+  def copy(): JBoolean = this
+  def discard(): Unit = { }
+}
 
 object JBoolean {
   def apply(value: Boolean): JBoolean = if(value) JTrue else JFalse
   def unapply(b: JBoolean): Option[Boolean] = if(b == null) None else Some(b.value)
+
+  implicit val ordering: Ordering[JBoolean] = Ordering.by(_.value)
 }
 
 case object JTrue extends JBoolean {
@@ -110,13 +99,17 @@ case object JFalse extends JBoolean {
   def value: Boolean = false
 }
 
-class JNumber(val value: Double) extends JAtom[Double, JNumber] {
+class JNumber(val value: Double) extends JScalar with JReader {
   def unary_- : JNumber = new JNumber(-value)
   def + (r: JNumber.Repr): JNumber = new JNumber(this.value + r.value)
   def - (r: JNumber.Repr): JNumber = new JNumber(this.value - r.value)
   def * (r: JNumber.Repr): JNumber = new JNumber(this.value * r.value)
   def / (r: JNumber.Repr): JNumber = new JNumber(this.value * r.value)
   def % (r: JNumber.Repr): JNumber = new JNumber(this.value % r.value)
+
+  def reader: JReader = this
+  def copy(): JNumber = this
+  def discard(): Unit = { }
 
   override def hashCode(): Int = value.hashCode()
 
@@ -132,6 +125,8 @@ object JNumber {
   def apply(repr: Repr): JNumber = new JNumber(repr.value)
   def unapply(n: JNumber): Option[Double] = if(n == null) None else Some(n.value)
 
+  implicit val ordering: Ordering[JNumber] = Ordering.by(_.value)
+
   class Repr(val value: Double) extends AnyVal
   object Repr {
     implicit def ofJNumber(v: JNumber): Repr = new Repr(v.value)
@@ -142,12 +137,14 @@ object JNumber {
   }
 }
 
-case class JString(value: String) extends JScalar with JScalarOf[String] {
+case class JString(value: String) extends JScalar {
   def reader: JStringReader = new InstanceJStringReader(value)
 }
 
 object JString {
   val empty: JString = new JString("")
+
+  implicit val ordering: Ordering[JString] = Ordering.by(_.value)
 
   def encode(reader: Reader, writer: Writer): Unit = {
     writer.write("\"")
@@ -203,7 +200,9 @@ object JArray {
   def unapplySeq(a: JArray): Option[IndexedSeq[JValue]] = if(a == null) None else Some(a.elements)
 }
 
-trait JArrayReader extends JReader with JReaderOf[JArray] {
+trait JArrayReader extends JReader {
+  def copy(): JArray
+
   /** Consumes the reader, returning the array elements matched by the provided collector. */
   def collect[A](collector: PartialFunction[JReader, A]): Seq[A]
 
@@ -221,8 +220,6 @@ class JObject protected (
   val seq: sci.Seq[(String, JValue)],
   val map: sci.Map[String, JValue]
 ) extends JValue {
-  def reader[A](loan: JReader => A): A = using(new InstanceJObjectReader(this))(loan)
-
   def apply(name: String): JLookup = map.get(name) match {
     case Some(v) => v
     case None => JUndefined
@@ -282,6 +279,7 @@ object JObject {
   }
 }
 
-trait JObjectReader extends JReader with JReaderOf[JObject] {
+trait JObjectReader extends JReader {
+  def copy(): JObject
   def collect[A](collector: PartialFunction[(String, JReader), A]): Seq[A]
 }
