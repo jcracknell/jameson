@@ -42,8 +42,6 @@ case object JUndefined extends JLookup {
 
 sealed trait JValue extends JLookup {
   def isUndefined: Boolean = false
-  // TODO: loan control
-  def reader: JReader
 }
 
 sealed trait JReader {
@@ -72,14 +70,12 @@ sealed trait JScalar extends JValue {
 
 case object JNull extends JScalar with JReader {
   def value: Null = null
-  def reader: JReader = this
   def copy(): JNull.type = this
   def discard(): Unit = { }
 }
 
 sealed trait JBoolean extends JScalar with JReader {
   def value: Boolean
-  def reader: JReader = this
   def copy(): JBoolean = this
   def discard(): Unit = { }
 }
@@ -107,7 +103,6 @@ class JNumber(val value: Double) extends JScalar with JReader {
   def / (r: JNumber.Repr): JNumber = new JNumber(this.value * r.value)
   def % (r: JNumber.Repr): JNumber = new JNumber(this.value % r.value)
 
-  def reader: JReader = this
   def copy(): JNumber = this
   def discard(): Unit = { }
 
@@ -138,7 +133,6 @@ object JNumber {
 }
 
 case class JString(value: String) extends JScalar {
-  def reader: JStringReader = new InstanceJStringReader(value)
 }
 
 object JString {
@@ -177,8 +171,6 @@ class JArray(val elements: scala.collection.immutable.IndexedSeq[JValue]) extend
   def apply(index: Int): JLookup = if(elements.isDefinedAt(index)) elements(index) else JUndefined
 
   def length: Int = elements.length
-
-  def reader: JArrayReader = new InstanceJArrayReader(this)
 
   override def hashCode(): Int = elements.hashCode()
 
@@ -226,8 +218,6 @@ class JObject protected (
   }
 
   def apply(index: Int): JLookup = JUndefined
-
-  def reader: JObjectReader = new InstanceJObjectReader(this)
 
   override def hashCode(): Int = seq.hashCode()
 
