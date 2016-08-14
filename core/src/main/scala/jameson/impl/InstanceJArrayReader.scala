@@ -3,7 +3,7 @@ package impl
 import scala.collection.mutable
 
 class InstanceJArrayReader(arr: JArray) extends BaseJArrayReader {
-  override protected def foreach(f: (Int, JReader) => Unit): Unit = {
+  override protected def consume(f: (Int, JReader) => Unit): Unit = {
     guard()
 
     var i = 0

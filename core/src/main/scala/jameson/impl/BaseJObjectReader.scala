@@ -6,7 +6,7 @@ abstract class BaseJObjectReader extends JObjectReader with AutoCloseable {
   private var closed = false
   private var consumed = false
 
-  protected def foreach(f: (String, JReader) => Unit): Unit
+  protected def consume(f: (String, JReader) => Unit): Unit
 
   protected def seqBuilder[A]: scala.collection.mutable.Builder[A, Seq[A]] = Vector.newBuilder[A]
 
@@ -14,11 +14,14 @@ abstract class BaseJObjectReader extends JObjectReader with AutoCloseable {
     guard()
 
     val builder = seqBuilder[A]
-    foreach { (name, reader) =>
+    consume { (name, reader) =>
       val tup = (name, reader)
 
-      if(collector.isDefinedAt(tup))
+      if(collector.isDefinedAt(tup)) {
         builder += collector(tup)
+      } else {
+        reader.discard()
+      }
     }
 
     builder.result()
@@ -28,7 +31,7 @@ abstract class BaseJObjectReader extends JObjectReader with AutoCloseable {
     guard()
 
     val builder = JObject.builder
-    foreach { (name, reader) =>
+    consume { (name, reader) =>
       builder.add((name, reader.copy()))
     }
 
@@ -40,7 +43,7 @@ abstract class BaseJObjectReader extends JObjectReader with AutoCloseable {
   def discard(): Unit = {
     guard()
 
-    foreach { (_, reader) => reader.discard() }
+    consume { (_, reader) => reader.discard() }
   }
 
   def close(): Unit = {

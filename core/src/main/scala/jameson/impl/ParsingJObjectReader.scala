@@ -6,7 +6,7 @@ import scala.annotation.tailrec
 import Parser._
 
 class ParsingJObjectReader(ctx: ParsingContext) extends BaseJObjectReader {
-  protected def foreach(f: (String, JReader) => Unit): Unit = {
+  protected def consume(f: (String, JReader) => Unit): Unit = {
     // Initialize a buffer and StringBuilder we can reuse for every property name
     val nameBuffer = Array.ofDim[Char](64)
     val nameBuilder = new java.lang.StringBuilder

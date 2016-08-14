@@ -4,7 +4,7 @@ package impl
 import Parser._
 
 class ParsingJArrayReader(ctx: ParsingContext) extends BaseJArrayReader {
-  protected def foreach(f: (Int, JReader) => Unit): Unit = {
+  protected def consume(f: (Int, JReader) => Unit): Unit = {
     var i = 0
 
     ctx.require('[')

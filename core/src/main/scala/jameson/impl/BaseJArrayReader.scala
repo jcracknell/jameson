@@ -5,7 +5,7 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
   private var closed = false
   private var consumed = false
 
-  protected def foreach(f: (Int, JReader) => Unit): Unit
+  protected def consume(f: (Int, JReader) => Unit): Unit
 
   protected def seqBuilder[A]: scala.collection.mutable.Builder[A, Seq[A]] = Vector.newBuilder[A]
   protected def indexedSeqBuilder[A]: scala.collection.mutable.Builder[A, IndexedSeq[A]] = Vector.newBuilder[A]
@@ -14,7 +14,7 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
     guard()
 
     val builder = seqBuilder[A]
-    foreach { (i, valueReader) =>
+    consume { (i, valueReader) =>
       if(collector.isDefinedAt(valueReader)) {
         builder += collector(valueReader)
       } else {
@@ -28,7 +28,7 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
     guard()
 
     val builder = seqBuilder[A]
-    foreach { (i, valueReader) =>
+    consume { (i, valueReader) =>
       val tup = (i, valueReader)
       if(collector.isDefinedAt(tup)) {
         builder += collector(tup)
@@ -43,7 +43,7 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
     guard()
 
     val builder = indexedSeqBuilder[A]
-    foreach { (i, valueReader) =>
+    consume { (i, valueReader) =>
       builder += projection(valueReader)
     }
     builder.result()
@@ -53,7 +53,7 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
     guard()
 
     val builder = indexedSeqBuilder[A]
-    foreach { (i, valueReader) =>
+    consume { (i, valueReader) =>
       builder += projection(i, valueReader)
     }
     builder.result()
@@ -64,7 +64,7 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
 
     val matched = seqBuilder[A]
     val unmatched = seqBuilder[JValue]
-    foreach { (i, valueReader) =>
+    consume { (i, valueReader) =>
       if(collector.isDefinedAt(valueReader)) {
         matched += collector(valueReader)
       } else {
@@ -79,7 +79,7 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
 
     val matched = seqBuilder[A]
     val unmatched = seqBuilder[(Int, JValue)]
-    foreach { (i, valueReader) =>
+    consume { (i, valueReader) =>
       val tup = (i, valueReader)
       if(collector.isDefinedAt(tup)) {
         matched += collector(tup)
@@ -94,7 +94,7 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
     guard()
 
     val builder = indexedSeqBuilder[JValue]
-    foreach { (i, valueReader) =>
+    consume { (i, valueReader) =>
       builder += valueReader.copy()
     }
 
@@ -104,7 +104,7 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
   def discard(): Unit = {
     guard()
 
-    foreach { (_, valueReader) =>
+    consume { (_, valueReader) =>
       valueReader.discard()
     }
   }
