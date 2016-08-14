@@ -210,10 +210,11 @@ trait JArrayReader extends JReader with JReaderOf[JArray] {
   /** Consumes the reader, returning the array elements matched by the provided collector. */
   def collectIndexed[A](collector: PartialFunction[(Int, JReader), A]): Seq[A]
 
+  def collectAll[A](collector: PartialFunction[JReader, A]): (Seq[A], Seq[JValue])
+  def collectAllIndexed[A](collector: PartialFunction[(Int, JReader), A]): (Seq[A], Seq[(Int, JValue)])
+
   def map[A](projection: JReader => A): IndexedSeq[A]
   def mapIndexed[A](projection: (Int, JReader) => A): IndexedSeq[A]
-  def partition[A](collector: PartialFunction[JReader, A]): (Seq[A], Seq[JValue])
-  def partitionIndexed[A](collector: PartialFunction[(Int, JReader), A]): (Seq[A], Seq[(Int, JValue)])
 }
 
 class JObject protected (

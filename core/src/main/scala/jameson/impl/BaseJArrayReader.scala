@@ -59,7 +59,7 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
     builder.result()
   }
 
-  def partition[A](collector: PartialFunction[JReader, A]): (Seq[A], Seq[JValue]) = {
+  def collectAll[A](collector: PartialFunction[JReader, A]): (Seq[A], Seq[JValue]) = {
     guard()
 
     val matched = seqBuilder[A]
@@ -74,7 +74,7 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
     (matched.result(), unmatched.result())
   }
 
-  def partitionIndexed[A](collector: PartialFunction[(Int, JReader), A]): (Seq[A], Seq[(Int, JValue)]) = {
+  def collectAllIndexed[A](collector: PartialFunction[(Int, JReader), A]): (Seq[A], Seq[(Int, JValue)]) = {
     guard()
 
     val matched = seqBuilder[A]
