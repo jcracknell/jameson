@@ -2,17 +2,18 @@ package jameson
 package impl
 
 
-abstract class BaseJObjectReader extends JObjectReader {
+abstract class BaseJObjectReader extends JObjectReader with AutoCloseable {
   private var closed = false
   private var consumed = false
 
   protected def foreach(f: (String, JReader) => Unit): Unit
-  protected def newBuilder[A]: scala.collection.mutable.Builder[A, Seq[A]]
+
+  protected def seqBuilder[A]: scala.collection.mutable.Builder[A, Seq[A]] = Vector.newBuilder[A]
 
   def collect[A](collector: PartialFunction[(String, JReader), A]): Seq[A] = {
     guard()
 
-    val builder = newBuilder[A]
+    val builder = seqBuilder[A]
     foreach { (name, reader) =>
       val tup = (name, reader)
 

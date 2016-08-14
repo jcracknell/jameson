@@ -9,7 +9,7 @@ class InstanceJArrayReader(arr: JArray) extends BaseJArrayReader {
     arr.elements foreach { value => f(value.reader) }
   }
 
-  override protected def newBuilder[A]: mutable.Builder[A, IndexedSeq[A]] = {
+  override protected def indexedSeqBuilder[A]: mutable.Builder[A, IndexedSeq[A]] = {
     val builder = Vector.newBuilder[A]
     builder.sizeHint(arr.elements.length)
     builder
