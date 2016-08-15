@@ -3,7 +3,7 @@ package impl
 
 import org.scalatest.{FunSpec, Matchers}
 
-class ParsingJStringWriterSpec extends FunSpec with Matchers {
+class StreamingJStringWriterSpec extends FunSpec with Matchers {
   def write(str: String, options: StreamingJStringWriter.Options = StreamingJStringWriter.defaultOptions): String = {
     val sw = new java.io.StringWriter
     using(new StreamingJStringWriter(sw, options)) { writer =>

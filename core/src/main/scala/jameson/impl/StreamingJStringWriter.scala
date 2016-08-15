@@ -7,7 +7,7 @@ import java.io.Writer
   * [[java.io.Writer]]. Note that the output to the writer does not include quotation
   * marks, and as such this class can be used to encode string fragments.
   */
-class StreamingJStringWriter(writer: Writer, options: StreamingJStringWriter.Options = StreamingJStringWriter.defaultOptions) extends Writer {
+class StreamingJStringWriter(writer: Writer, options: StreamingJStringWriter.Options = StreamingJStringWriter.defaultOptions) extends JStringWriter {
   private var closed = false
 
   override def write(chars: Array[Char], offset: Int, length: Int): Unit = {
