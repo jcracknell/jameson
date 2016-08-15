@@ -7,7 +7,7 @@ import scala.language.implicitConversions
 
 class ParserSpec extends FunSpec with Matchers {
   implicit def stringAsParsingContext(input: String): ParsingContext =
-    new ParsingContext(new java.io.StringReader(input), JPath.stream)
+    new ParsingContext(new java.io.StringReader(input), JPath)
 
   def parse(ctx: ParsingContext): JValue = Parser.parse(ctx)(_.copy())
 
