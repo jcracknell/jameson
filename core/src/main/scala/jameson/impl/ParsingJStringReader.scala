@@ -1,18 +1,17 @@
 package jameson
 package impl
 
-import java.io.Reader
-
 import jameson.util.IOUtil
 
 import scala.annotation.tailrec
+import Parser._
 
 /** [[java.io.Reader]] implementation which decodes a JSON string from an underlying
   * [[java.io.Reader]]. Reading ends when a closing U+0022 QUOTATION MARK character
   * is encountered. Note that the leading quotation mark should have been consumed
   * from the reader.
   */
-class ParsingJStringReader(reader: Reader) extends JStringReader {
+class ParsingJStringReader(ctx: ParsingContext) extends JStringReader {
   private var ended = false
   private var closed = false
 
@@ -33,35 +32,36 @@ class ParsingJStringReader(reader: Reader) extends JStringReader {
   override def read(): Int = {
     assertOpen()
 
-    if(ended) -1 else reader.read() match {
-      case 0x5C => readEscape()
-      case 0x22 =>
+    if(ended) -1 else ctx.peek() match {
+      case BACKSLASH => readEscape()
+      case DOUBLE_QUOTE =>
+        ctx.drop(1)
         ended = true
         -1
       case c =>
-        if(Character.isISOControl(c))
-          throw new JParsingException("Invalid character in JSON string.")
-        if(c < 0)
-          throw new JParsingException("Unexpected end of input in JSON string.")
+        if(Character.isISOControl(c)) ctx.error("Invalid character in JSON string")
+        if(c < 0) ctx.error("Unterminated JSON string")
+
+        ctx.drop(1)
         c
     }
   }
 
-  private def readEscape(): Int = reader.read() match {
-    case 0x22 => 0x22 // '"'
-    case 0x5C => 0x5C // '\\'
-    case 0x2F => 0x2F // '/'
-    case 0x62 => 0x08 // '\b'
-    case 0x66 => 0x0C // '\f'
-    case 0x6E => 0x0A // '\n'
-    case 0x72 => 0x0D // '\r'
-    case 0x74 => 0x09 // '\t'
+  private def readEscape(): Int = ctx.peek(1) match {
+    case 0x22 => ctx.drop(2); 0x22 // '"'
+    case 0x5C => ctx.drop(2); 0x5C // '\\'
+    case 0x2F => ctx.drop(2); 0x2F // '/'
+    case 0x62 => ctx.drop(2); 0x08 // '\b'
+    case 0x66 => ctx.drop(2); 0x0C // '\f'
+    case 0x6E => ctx.drop(2); 0x0A // '\n'
+    case 0x72 => ctx.drop(2); 0x0D // '\r'
+    case 0x74 => ctx.drop(2); 0x09 // '\t'
     case 0x75 => readUnicodeEscape()
-    case _ => throw new JParsingException("Invalid escape sequence in JSON string.")
+    case _ => ctx.error("Invalid escape sequence in JSON string")
   }
 
   private def readUnicodeEscape(): Int = {
-    def dec(c: Int): Int = c match {
+    def d(c: Int): Int = c match {
       case 0x30        => 0x0
       case 0x31        => 0x1
       case 0x32        => 0x2
@@ -78,11 +78,13 @@ class ParsingJStringReader(reader: Reader) extends JStringReader {
       case 0x44 | 0x64 => 0xD
       case 0x45 | 0x65 => 0xE
       case 0x46 | 0x66 => 0xF
-      case c if c < 0 => throw new JParsingException("Unexpected end of input in JSON string.")
-      case _ => throw new JParsingException("Invalid unicode escape.")
+      case c if c < 0 => ctx.error("Unexpected end of input in JSON string.")
+      case _ => ctx.error("Invalid unicode escape.")
     }
 
-    dec(reader.read()) << 12 | dec(reader.read()) << 8 | dec(reader.read()) << 4 | dec(reader.read())
+    val c = d(ctx.peek(2)) << 12 | d(ctx.peek(3)) << 8 | d(ctx.peek(4)) << 4 | d(ctx.peek(5))
+    ctx.drop(6)
+    c
   }
 
   def discard(): Unit = {

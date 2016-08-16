@@ -12,6 +12,7 @@ object Parser {
   val COLON                = 0x3A
   val COMMA                = 0x2C
   val PERIOD               = 0x2E
+  val BACKSLASH            = 0x5C
 
   // Identifying characters
   val ZERO         = 0x30
@@ -20,6 +21,7 @@ object Parser {
   val LOWERCASE_F  = 0x66
   val LOWERCASE_N  = 0x6E
   val LOWERCASE_T  = 0x74
+  val LOWERCASE_U  = 0x75
   val MINUS_SIGN   = 0x2D
   val PLUS_SIGN    = 0x2B
   val DOUBLE_QUOTE = 0x22

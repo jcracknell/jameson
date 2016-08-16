@@ -1,20 +1,15 @@
 package jameson
 package impl
 
+import jameson.util.IOUtil
 import org.scalatest.{FunSpec, Matchers}
 
 class ParsingJStringReaderSpec extends FunSpec with Matchers {
-  def read(str: String): String = using(new ParsingJStringReader(new java.io.StringReader(str))) { reader =>
-    val sb = new java.lang.StringBuilder
-    val buffer = Array.ofDim[Char](1024)
-    def loop(): String = {
-      val n = reader.read(buffer, 0, buffer.length)
-      if(n <= 0) sb.toString else {
-        sb.append(buffer, 0, n)
-        loop()
-      }
+  def read(str: String): String = {
+    val ctx = new ParsingContext(new java.io.StringReader(str), JPath)
+    using(new ParsingJStringReader(ctx)) { reader =>
+      IOUtil.readAll(reader)
     }
-    loop()
   }
 
   it("should read short escape sequences") {

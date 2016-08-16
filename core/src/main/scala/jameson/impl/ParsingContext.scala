@@ -33,6 +33,7 @@ final class ParsingContext(reader: Reader, private var _path: JPath) extends Rea
   def error(msg: String): Nothing = throw new JParsingException(s"$msg at $location.", location)
 
   def peek(): Int = if(ensure(1)) _buffer(_bufferPos).toInt else -1
+  def peek(offset: Int): Int = if(ensure(offset + 1)) _buffer(_bufferPos + offset).toInt else -1
 
   def ahead(c: Char): Boolean = ensure(1) && _buffer(_bufferPos) == c
 
