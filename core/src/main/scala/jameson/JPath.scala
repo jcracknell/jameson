@@ -5,7 +5,6 @@ import java.io.Writer
 sealed trait JPath {
   def isBase: Boolean
   def parent: JPath
-  def base: JPath = if(isBase) this else parent.base
 
   def resolve(ctx: JLookup): JLookup
 
