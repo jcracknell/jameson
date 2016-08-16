@@ -5,13 +5,11 @@ import java.io.Writer
 sealed trait JPath {
   def isBase: Boolean
   def parent: JPath
-
+  def depth: Int
   def resolve(ctx: JLookup): JLookup
 
   def /(name: String): JPath = new JPath.Property(this, name)
   def /(index: Int): JPath = new JPath.Index(this, index)
-
-  def depth: Int = if(isBase) 0 else 1 + parent.depth
 
   protected def renderTo(writer: Writer): Unit
 
@@ -25,6 +23,7 @@ sealed trait JPath {
 object JPath extends JPath {
   def isBase: Boolean = true
   def parent: JPath = throw new UnsupportedOperationException()
+  def depth: Int = 0
   def resolve(ctx: JLookup): JLookup = ctx
 
   protected def renderTo(writer: Writer): Unit = writer.write(".")
@@ -35,6 +34,7 @@ object JPath extends JPath {
 
   case class Property(parent: JPath, name: String) extends JPath {
     def isBase: Boolean = false
+    val depth: Int = parent.depth + 1
     def resolve(ctx: JLookup): JLookup = parent.resolve(ctx)(name)
 
     protected def renderTo(writer: Writer): Unit = {
@@ -49,6 +49,7 @@ object JPath extends JPath {
     if(index < 0) throw new IndexOutOfBoundsException(index.toString)
 
     def isBase: Boolean = false
+    val depth: Int = parent.depth + 1
     def resolve(ctx: JLookup): JLookup = parent.resolve(ctx)(index)
 
     protected def renderTo(writer: Writer): Unit = {
