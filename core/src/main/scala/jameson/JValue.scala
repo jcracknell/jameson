@@ -5,8 +5,6 @@ import jameson.util.IOUtil
 import java.io.{Reader, Writer}
 import scala.collection.{immutable => sci}
 
-import scala.language.implicitConversions
-
 sealed trait JLookup {
   def isUndefined: Boolean
 
@@ -96,13 +94,6 @@ case object JFalse extends JBoolean {
 }
 
 class JNumber(val value: Double) extends JScalar with JReader {
-  def unary_- : JNumber = new JNumber(-value)
-  def + (r: JNumber.Repr): JNumber = new JNumber(this.value + r.value)
-  def - (r: JNumber.Repr): JNumber = new JNumber(this.value - r.value)
-  def * (r: JNumber.Repr): JNumber = new JNumber(this.value * r.value)
-  def / (r: JNumber.Repr): JNumber = new JNumber(this.value * r.value)
-  def % (r: JNumber.Repr): JNumber = new JNumber(this.value % r.value)
-
   def copy(): JNumber = this
   def discard(): Unit = { }
 
@@ -117,19 +108,14 @@ class JNumber(val value: Double) extends JScalar with JReader {
 }
 
 object JNumber {
-  def apply(repr: Repr): JNumber = new JNumber(repr.value)
+  def apply(value: Double): JNumber = new JNumber(value)
+  def apply(value: Float): JNumber = new JNumber(value.toDouble)
+  def apply(value: Int): JNumber = new JNumber(value.toDouble)
+  def apply(value: Short): JNumber = new JNumber(value.toDouble)
+
   def unapply(n: JNumber): Option[Double] = if(n == null) None else Some(n.value)
 
   implicit val ordering: Ordering[JNumber] = Ordering.by(_.value)
-
-  class Repr(val value: Double) extends AnyVal
-  object Repr {
-    implicit def ofJNumber(v: JNumber): Repr = new Repr(v.value)
-    implicit def ofDouble(v: Double): Repr = new Repr(v)
-    implicit def ofFloat(v: Float): Repr = new Repr(v.toDouble)
-    implicit def ofInt(v: Int): Repr = new Repr(v.toDouble)
-    implicit def ofShort(v: Short): Repr = new Repr(v.toDouble)
-  }
 }
 
 case class JString(value: String) extends JScalar {
