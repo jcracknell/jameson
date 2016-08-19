@@ -3,6 +3,7 @@ package jameson
 import jameson.impl._
 import jameson.util.IOUtil
 import java.io.{Reader, Writer}
+
 import scala.collection.{immutable => sci}
 
 sealed trait JLookup {
@@ -40,7 +41,16 @@ case object JUndefined extends JLookup {
 
 sealed trait JValue extends JLookup {
   def isUndefined: Boolean = false
+  def valueType: JValue.Type
 }
+
+object JValue {
+  /** Algebraic data type representing the types of [[JValue]] available.
+    * Implemented by [[JValue]] companion objects.
+    */
+  sealed trait Type
+}
+
 
 sealed trait JReader {
   /** Consumes the reader, marshaling its contents to the equivalent [[JValue]]
@@ -66,19 +76,21 @@ sealed trait JScalar extends JValue {
   def apply(index: Int): JLookup = JUndefined
 }
 
-case object JNull extends JScalar with JReader {
+case object JNull extends JScalar with JReader with JValue.Type {
   def value: Null = null
   def copy(): JNull.type = this
   def discard(): Unit = { }
+  def valueType: JValue.Type = JNull
 }
 
 sealed trait JBoolean extends JScalar with JReader {
   def value: Boolean
   def copy(): JBoolean = this
   def discard(): Unit = { }
+  def valueType: JValue.Type = JBoolean
 }
 
-object JBoolean {
+object JBoolean extends JValue.Type {
   def apply(value: Boolean): JBoolean = if(value) JTrue else JFalse
   def unapply(b: JBoolean): Option[Boolean] = if(b == null) None else Some(b.value)
 
@@ -96,6 +108,7 @@ case object JFalse extends JBoolean {
 class JNumber(val value: Double) extends JScalar with JReader {
   def copy(): JNumber = this
   def discard(): Unit = { }
+  def valueType: JValue.Type = JNumber
 
   override def hashCode(): Int = value.hashCode()
 
@@ -104,10 +117,10 @@ class JNumber(val value: Double) extends JScalar with JReader {
     case _ => false
   }
 
-  override def toString: String = s"JNumber($value)"
+  override def toString: String = "JNumber(" + JNumber.encode(value) + ")"
 }
 
-object JNumber {
+object JNumber extends JValue.Type {
   def apply(value: Double): JNumber = new JNumber(value)
   def apply(value: Float): JNumber = new JNumber(value.toDouble)
   def apply(value: Int): JNumber = new JNumber(value.toDouble)
@@ -119,9 +132,10 @@ object JNumber {
 }
 
 case class JString(value: String) extends JScalar {
+  def valueType: JValue.Type = JString
 }
 
-object JString {
+object JString extends JValue.Type {
   val empty: JString = new JString("")
 
   implicit val ordering: Ordering[JString] = Ordering.by(_.value)
@@ -158,6 +172,8 @@ class JArray(val elements: scala.collection.immutable.IndexedSeq[JValue]) extend
 
   def length: Int = elements.length
 
+  def valueType: JValue.Type = JArray
+
   override def hashCode(): Int = elements.hashCode()
 
   override def equals(obj: Any): Boolean = obj match {
@@ -168,7 +184,7 @@ class JArray(val elements: scala.collection.immutable.IndexedSeq[JValue]) extend
   override def toString: String = elements.mkString("JArray(", ", ", ")")
 }
 
-object JArray {
+object JArray extends JValue.Type {
   val empty: JArray = new JArray(Vector.empty)
 
   def apply(): JArray = empty
@@ -205,6 +221,8 @@ class JObject protected (
 
   def apply(index: Int): JLookup = JUndefined
 
+  def valueType: JValue.Type = JObject
+
   override def hashCode(): Int = seq.hashCode()
 
   override def equals(obj: Any): Boolean = obj match {
@@ -216,7 +234,7 @@ class JObject protected (
     seq.iterator.map({ case (n, v) => JString.encode(n) + ": " + v.toString }).mkString("JObject(", ", ", ")")
 }
 
-object JObject {
+object JObject extends JValue.Type {
   val empty: JObject = new JObject(Vector.empty, Map.empty)
 
   def apply(): JObject = empty
