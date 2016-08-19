@@ -4,6 +4,8 @@ import jameson.impl._
 import jameson.util.IOUtil
 import java.io.{Reader, Writer}
 
+import jameson.enc.JStringEncoder
+
 import scala.collection.{immutable => sci}
 
 sealed trait JLookup {
@@ -117,7 +119,7 @@ class JNumber(val value: Double) extends JScalar with JReader {
     case _ => false
   }
 
-  override def toString: String = "JNumber(" + JNumber.encode(value) + ")"
+  override def toString: String = "JNumber(" + value.toString + ")"
 }
 
 object JNumber extends JValue.Type {
@@ -140,26 +142,9 @@ object JString extends JValue.Type {
 
   implicit val ordering: Ordering[JString] = Ordering.by(_.value)
 
-  def encode(reader: Reader, writer: Writer): Unit = {
-    writer.write("\"")
-    IOUtil.copy(reader, new StreamingJStringWriter(writer))
-    writer.write("\"")
-  }
+  def encode(str: String, writer: Writer): Unit = JStringEncoder.encode(str, writer)
 
-  def encode(str: String, writer: Writer): Unit = {
-    writer.write("\"")
-    new StreamingJStringWriter(writer).write(str)
-    writer.write("\"")
-  }
-
-  def encode(reader: Reader): String = {
-    val sw = new java.io.StringWriter
-    encode(reader, sw)
-    sw.toString
-  }
-
-  def encode(str: CharSequence): String =
-    encode(new java.io.StringReader(str.toString))
+  def encode(str: String): String = JStringEncoder.encode(str)
 }
 
 trait JStringReader extends Reader with JReader {
