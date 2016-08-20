@@ -19,19 +19,19 @@ class EncodingJObjectWriter(ctx: EncodingContext) extends JObjectWriter with Aut
     up()
   }
 
-  def writeArray(name: String)(loan: JArrayWriter => Unit): JObjectWriter = {
+  def writeArray(name: String, sizeHint: Int)(loan: JArrayWriter => Unit): JObjectWriter = {
     guard()
 
     down(name)
-    valueWriter.reset().writeArray(loan)
+    valueWriter.reset().writeArray(sizeHint)(loan)
     up()
   }
 
-  def writeObject(name: String)(loan: JObjectWriter => Unit): JObjectWriter = {
+  def writeObject(name: String, sizeHint: Int)(loan: JObjectWriter => Unit): JObjectWriter = {
     guard()
 
     down(name)
-    valueWriter.reset().writeObject(loan)
+    valueWriter.reset().writeObject(sizeHint)(loan)
     up()
   }
 

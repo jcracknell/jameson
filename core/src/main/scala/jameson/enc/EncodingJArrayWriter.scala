@@ -19,19 +19,19 @@ class EncodingJArrayWriter(ctx: EncodingContext) extends JArrayWriter with AutoC
     up()
   }
 
-  def writeArray(loan: (JArrayWriter) => Unit): JArrayWriter = {
+  def writeArray(sizeHint: Int)(loan: (JArrayWriter) => Unit): JArrayWriter = {
     guard()
 
     down()
-    valueWriter.reset().writeArray(loan)
+    valueWriter.reset().writeArray(sizeHint)(loan)
     up()
   }
 
-  def writeObject(loan: (JObjectWriter) => Unit): JArrayWriter = {
+  def writeObject(sizeHint: Int)(loan: (JObjectWriter) => Unit): JArrayWriter = {
     guard()
 
     down()
-    valueWriter.reset().writeObject(loan)
+    valueWriter.reset().writeObject(sizeHint)(loan)
     up()
   }
 

@@ -40,7 +40,7 @@ class EncodingJValueWriter(ctx: EncodingContext) extends JValueWriter with AutoC
     ctx.writer.write('"')
   }
 
-  def writeArray(loan: JArrayWriter => Unit): Unit = {
+  def writeArray(sizeHint: Int)(loan: JArrayWriter => Unit): Unit = {
     consume()
 
     ctx.writer.write('[')
@@ -49,9 +49,9 @@ class EncodingJValueWriter(ctx: EncodingContext) extends JValueWriter with AutoC
   }
 
   def writeArray(arr: JArray): Unit =
-    writeArray { aw => arr.elements foreach { el => aw.write(el) } }
+    writeArray(arr.elements.length) { aw => arr.elements foreach { el => aw.write(el) } }
 
-  def writeObject(loan: JObjectWriter => Unit): Unit = {
+  def writeObject(sizeHint: Int)(loan: JObjectWriter => Unit): Unit = {
     consume()
 
     ctx.writer.write('{')
@@ -60,7 +60,7 @@ class EncodingJValueWriter(ctx: EncodingContext) extends JValueWriter with AutoC
   }
 
   def writeObject(obj: JObject): Unit =
-    writeObject { ow => obj.seq foreach { case (name, value) => ow.write(name, value) } }
+    writeObject(obj.seq.length) { ow => obj.seq foreach { case (name, value) => ow.write(name, value) } }
 
   private def consume(): Unit = {
     if(consumed)
