@@ -21,12 +21,12 @@ trait JValueWriter {
   def writeArray(loan: JArrayWriter => Unit): Unit =
     writeArray(-1)(loan)
 
-  def writeArray[A](coll: Traversable[A])(each: (JArrayWriter, A) => Unit): Unit =
-    writeArray(coll.size) { arrayWriter => coll foreach { a => each(arrayWriter, a) } }
+  def writeArray[A](coll: Traversable[A])(each: (A, JArrayWriter) => Unit): Unit =
+    writeArray(coll.size) { arrayWriter => coll foreach { a => each(a, arrayWriter) } }
 
   def writeObject(loan: JObjectWriter => Unit): Unit =
     writeObject(-1)(loan)
 
-  def writeObject[A](coll: Traversable[A])(each: (JObjectWriter, A) => Unit): Unit =
-    writeObject(coll.size) { objectWriter => coll foreach { a => each(objectWriter, a) } }
+  def writeObject[A](coll: Traversable[A])(each: (A, JObjectWriter) => Unit): Unit =
+    writeObject(coll.size) { objectWriter => coll foreach { a => each(a, objectWriter) } }
 }
