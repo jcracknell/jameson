@@ -1,7 +1,5 @@
-package jameson.enc
-
-import java.io.Writer
-
+package jameson
+package enc
 
 trait JArrayWriter {
   def write[A](a: A)(implicit encoder: JEncoder[A]): JArrayWriter
@@ -11,4 +9,3 @@ trait JArrayWriter {
   def writeObject(sizeHint: Int)(loan: JObjectWriter => Unit): JArrayWriter
   def writeString(loan: JStringWriter => Unit): JArrayWriter
 }
-

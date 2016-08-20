@@ -1,5 +1,6 @@
 package jameson
-package enc
+
+import jameson.enc._
 
 trait JEncoder[A] {
   def encode(a: A, writer: JValueWriter): Unit
