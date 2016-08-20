@@ -32,18 +32,45 @@ trait EncodingApi {
   }
 
   def encodeArray(writer: Writer)(loan: JArrayWriter => Unit): Unit =
-    encodeArray(writer, new EncodingOptions())(loan)
+    encodeArray(writer, -1)(loan)
 
-  def encodeArray(writer: Writer, options: EncodingOptions)(loan: JArrayWriter => Unit): Unit = {
+  def encodeArray(writer: Writer, sizeHint: Int)(loan: JArrayWriter => Unit): Unit =
+    encodeArray(writer, sizeHint, new EncodingOptions())(loan)
+
+  def encodeArray(writer: Writer, options: EncodingOptions)(loan: JArrayWriter => Unit): Unit =
+    encodeArray(writer, -1, options)(loan)
+
+  def encodeArray(writer: Writer, sizeHint: Int, options: EncodingOptions)(loan: JArrayWriter => Unit): Unit = {
     val ctx = new EncodingContext(writer, JPath, options)
     using(new EncodingJArrayWriter(ctx)) { arrayWriter =>
       loan(arrayWriter)
     }
   }
 
+  def encodeArrayFrom[A](coll: Traversable[A])(each: (A, JArrayWriter) => Unit): String =
+    encodeArrayFrom(new EncodingOptions())(coll)(each)
+
+  def encodeArrayFrom[A](options: EncodingOptions)(coll: Traversable[A])(each: (A, JArrayWriter) => Unit): String = {
+    val sw = new StringWriter
+    encodeArrayFrom(sw, options)(coll)(each)
+    sw.toString
+  }
+
+  def encodeArrayFrom[A](writer: Writer)(coll: Traversable[A])(each: (A, JArrayWriter) => Unit): Unit =
+    encodeArrayFrom(writer, new EncodingOptions())(coll)(each)
+
+  def encodeArrayFrom[A](writer: Writer, options: EncodingOptions)(coll: Traversable[A])(each: (A, JArrayWriter) => Unit): Unit =
+    encodeArray(writer, coll.size, options) { arrayWriter => coll foreach { a => each(a, arrayWriter) } }
+
   def encodeObject(loan: JObjectWriter => Unit): String = encodeObject(new EncodingOptions())(loan)
 
-  def encodeObject(options: EncodingOptions)(loan: JObjectWriter => Unit): String = {
+  def encodeObject(sizeHint: Int)(loan: JObjectWriter => Unit): String =
+    encodeObject(sizeHint, new EncodingOptions())(loan)
+
+  def encodeObject(options: EncodingOptions)(loan: JObjectWriter => Unit): String =
+    encodeObject(-1, options)(loan)
+
+  def encodeObject(sizeHint: Int, options: EncodingOptions)(loan: JObjectWriter => Unit): String = {
     val sw = new StringWriter
     encodeObject(sw, options)(loan)
     sw.toString
@@ -52,12 +79,33 @@ trait EncodingApi {
   def encodeObject(writer: Writer)(loan: JObjectWriter => Unit): Unit =
     encodeObject(writer, new EncodingOptions())(loan)
 
-  def encodeObject(writer: Writer, options: EncodingOptions)(loan: JObjectWriter => Unit): Unit = {
+  def encodeObject(writer: Writer, options: EncodingOptions)(loan: JObjectWriter => Unit): Unit =
+    encodeObject(writer, -1, options)(loan)
+
+  def encodeObject(writer: Writer, sizeHint: Int)(loan: JObjectWriter => Unit): Unit =
+    encodeObject(writer, sizeHint, new EncodingOptions())(loan)
+
+  def encodeObject(writer: Writer, sizeHint: Int, options: EncodingOptions)(loan: JObjectWriter => Unit): Unit = {
     val ctx = new EncodingContext(writer, JPath, options)
     using(new EncodingJObjectWriter(ctx)) { objectWriter =>
       loan(objectWriter)
     }
   }
+
+  def encodeObjectFrom[A](coll: Traversable[A])(each: (A, JObjectWriter) => Unit): String =
+    encodeObjectFrom(new EncodingOptions())(coll)(each)
+
+  def encodeObjectFrom[A](options: EncodingOptions)(coll: Traversable[A])(each: (A, JObjectWriter) => Unit): String = {
+    val sw = new StringWriter
+    encodeObjectFrom(sw, options)(coll)(each)
+    sw.toString
+  }
+
+  def encodeObjectFrom[A](writer: Writer)(coll: Traversable[A])(each: (A, JObjectWriter) => Unit): Unit =
+    encodeObjectFrom(writer, new EncodingOptions())(coll)(each)
+
+  def encodeObjectFrom[A](writer: Writer, options: EncodingOptions)(coll: Traversable[A])(each: (A, JObjectWriter) => Unit): Unit =
+    encodeObject(writer, coll.size, options) { objectWriter => coll foreach { a => each(a, objectWriter) } }
 
   case class EncodingOptions(
     escapeNonASCII: Boolean = false,
