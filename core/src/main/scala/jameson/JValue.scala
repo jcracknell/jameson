@@ -43,72 +43,12 @@ sealed trait JValue extends JLookup {
   def valueType: JValue.Type
 }
 
-object JValue {
+object JValue extends EncodingApi {
   /** Algebraic data type representing the types of [[JValue]] available.
     * Implemented by [[JValue]] companion objects.
     */
   sealed trait Type
 
-  def encode[A](a: A)(implicit encoder: JEncoder[A]): String =
-    encode(a, new EncodingOptions())
-
-  def encode[A](a: A, options: EncodingOptions)(implicit encoder: JEncoder[A]): String = {
-    val sw = new java.io.StringWriter
-    encode(a, sw, options)
-    sw.toString
-  }
-
-  def encode[A](a: A, writer: Writer)(implicit encoder: JEncoder[A]): Unit =
-    encode(a, writer, new EncodingOptions())
-
-  def encode[A](a: A, writer: Writer, options: EncodingOptions)(implicit encoder: JEncoder[A]): Unit = {
-    val ctx = new jameson.enc.EncodingContext(writer, JPath, options)
-    using(new jameson.enc.EncodingJValueWriter(ctx)) { valueWriter =>
-      encoder.encode(a, valueWriter)
-    }
-  }
-
-  def encodeArray(loan: JArrayWriter => Unit): String = encodeArray(new EncodingOptions())(loan)
-
-  def encodeArray(options: EncodingOptions)(loan: JArrayWriter => Unit): String = {
-    val sw = new java.io.StringWriter
-    encodeArray(sw, options)(loan)
-    sw.toString
-  }
-
-  def encodeArray(writer: Writer)(loan: JArrayWriter => Unit): Unit =
-    encodeArray(writer, new EncodingOptions())(loan)
-
-  def encodeArray(writer: Writer, options: EncodingOptions)(loan: JArrayWriter => Unit): Unit = {
-    val ctx = new jameson.enc.EncodingContext(writer, JPath, options)
-    using(new jameson.enc.EncodingJArrayWriter(ctx)) { arrayWriter =>
-      loan(arrayWriter)
-    }
-  }
-
-  def encodeObject(loan: JObjectWriter => Unit): String = encodeObject(new EncodingOptions())(loan)
-
-  def encodeObject(options: EncodingOptions)(loan: JObjectWriter => Unit): String = {
-    val sw = new java.io.StringWriter
-    encodeObject(sw, options)(loan)
-    sw.toString
-  }
-
-  def encodeObject(writer: Writer)(loan: JObjectWriter => Unit): Unit =
-    encodeObject(writer, new EncodingOptions())(loan)
-
-  def encodeObject(writer: Writer, options: EncodingOptions)(loan: JObjectWriter => Unit): Unit = {
-    val ctx = new jameson.enc.EncodingContext(writer, JPath, options)
-    using(new jameson.enc.EncodingJObjectWriter(ctx)) { objectWriter =>
-      loan(objectWriter)
-    }
-  }
-
-  case class EncodingOptions(
-    escapeNonASCII: Boolean = false,
-    escapeQuotes: Boolean = false,
-    escapeSlashes: Boolean = false
-  ) extends jameson.enc.EncodingOptions
 }
 
 
