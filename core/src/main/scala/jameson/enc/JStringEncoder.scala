@@ -25,7 +25,7 @@ object JStringEncoder {
 
   def encodeFragment(c: Char, writer: Writer, options: Options): Unit = {
     val esc = escape(c, options)
-    if(esc != null) writer.write(esc) else writer.write(c)
+    if(esc != null) writer.write(esc) else writer.write(c.toInt)
   }
 
   def encodeFragment(str: String, writer: Writer): Unit =
