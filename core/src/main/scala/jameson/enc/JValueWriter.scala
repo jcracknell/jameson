@@ -18,6 +18,10 @@ trait JValueWriter {
   def writeString(value: String): Unit
   def writeString(str: JString): Unit
 
+  def writeNumber(value: Float): Unit = writeNumber(value.toDouble)
+  def writeNumber(value: Int): Unit = writeNumber(value.toDouble)
+  def writeNumber(value: Short): Unit = writeNumber(value.toDouble)
+
   def writeArray(loan: JArrayWriter => Unit): Unit =
     writeArray(-1)(loan)
 
