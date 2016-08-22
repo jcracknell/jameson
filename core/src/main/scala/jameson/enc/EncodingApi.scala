@@ -42,7 +42,7 @@ trait EncodingApi {
 
   def encodeArray(writer: Writer, sizeHint: Int, options: EncodingOptions)(loan: JArrayWriter => Unit): Unit = {
     val ctx = new EncodingContext(writer, JPath, options)
-    using(new EncodingJArrayWriter(ctx)) { arrayWriter =>
+    using(new EncodingJArrayWriter(ctx, options.arrayStyleAt(ctx.path, sizeHint))) { arrayWriter =>
       loan(arrayWriter)
     }
   }
@@ -87,7 +87,7 @@ trait EncodingApi {
 
   def encodeObject(writer: Writer, sizeHint: Int, options: EncodingOptions)(loan: JObjectWriter => Unit): Unit = {
     val ctx = new EncodingContext(writer, JPath, options)
-    using(new EncodingJObjectWriter(ctx)) { objectWriter =>
+    using(new EncodingJObjectWriter(ctx, options.objectStyleAt(ctx.path, sizeHint))) { objectWriter =>
       loan(objectWriter)
     }
   }
@@ -108,8 +108,13 @@ trait EncodingApi {
     encodeObject(writer, coll.size, options) { objectWriter => coll foreach { a => each(a, objectWriter) } }
 
   case class EncodingOptions(
+    arrayStyle: JArrayStyle = JArrayStyle.Compact,
     escapeNonASCII: Boolean = false,
     escapeQuotes: Boolean = false,
-    escapeSlashes: Boolean = false
-  ) extends jameson.enc.EncodingOptions
+    escapeSlashes: Boolean = false,
+    objectStyle: JObjectStyle = JObjectStyle.Compact
+  ) extends jameson.enc.EncodingOptions {
+    def arrayStyleAt(path: JPath, sizeHint: Int): JArrayStyle = arrayStyle.at(path, sizeHint)
+    def objectStyleAt(path: JPath, sizeHint: Int): JObjectStyle = objectStyle.at(path, sizeHint)
+  }
 }

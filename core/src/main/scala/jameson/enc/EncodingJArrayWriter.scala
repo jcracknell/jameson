@@ -1,7 +1,7 @@
 package jameson
 package enc
 
-class EncodingJArrayWriter(ctx: EncodingContext) extends JArrayWriter with AutoCloseable {
+class EncodingJArrayWriter(ctx: EncodingContext, arrayStyle: JArrayStyle) extends JArrayWriter with AutoCloseable {
   private val path = ctx.path
   private val valueWriter = new EncodingJValueWriter(ctx)
 
@@ -44,7 +44,8 @@ class EncodingJArrayWriter(ctx: EncodingContext) extends JArrayWriter with AutoC
   }
 
   private def down(): Unit = {
-    if(i != 0) ctx.writer.write(',')
+    if(i != 0) arrayStyle.writeSeparator(ctx.writer)
+    arrayStyle.writeIndent(ctx.writer)
 
     ctx.pathDown(i)
     controlPassed = true

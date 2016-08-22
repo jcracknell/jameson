@@ -1,7 +1,7 @@
 package jameson
 package enc
 
-class EncodingJObjectWriter(ctx: EncodingContext) extends JObjectWriter with AutoCloseable {
+class EncodingJObjectWriter(ctx: EncodingContext, objectStyle: JObjectStyle) extends JObjectWriter with AutoCloseable {
   private val path = ctx.path
   private val valueWriter = new EncodingJValueWriter(ctx)
 
@@ -44,12 +44,13 @@ class EncodingJObjectWriter(ctx: EncodingContext) extends JObjectWriter with Aut
   }
 
   private def down(name: String): Unit = {
-    if(i != 0) ctx.writer.write(',')
+    if(i != 0) objectStyle.writeSeparator(ctx.writer)
+    objectStyle.writeIndent(ctx.writer)
 
     i += 1
 
     valueWriter.reset().writeString(name)
-    ctx.writer.write(':')
+    objectStyle.writeAssign(ctx.writer)
 
     ctx.pathDown(name)
     controlPassed = true

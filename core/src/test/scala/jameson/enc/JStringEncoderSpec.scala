@@ -12,7 +12,7 @@ class JStringEncoderSpec extends FunSpec with Matchers {
     escapeSlashes: Boolean = defaultOptions.escapeSlashes
   ) extends Options
 
-  describe("\"encode") {
+  describe("encode") {
     it("should escape quotes") {
       encode("\"") should be("\"\\\"\"")
     }

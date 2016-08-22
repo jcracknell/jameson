@@ -43,9 +43,11 @@ class EncodingJValueWriter(ctx: EncodingContext) extends JValueWriter with AutoC
   def writeArray(sizeHint: Int)(loan: JArrayWriter => Unit): Unit = {
     consume()
 
-    ctx.writer.write('[')
-    using(new EncodingJArrayWriter(ctx))(loan)
-    ctx.writer.write(']')
+    val arrayStyle = ctx.options.arrayStyleAt(ctx.path, sizeHint)
+
+    arrayStyle.writeStart(ctx.writer)
+    using(new EncodingJArrayWriter(ctx, arrayStyle))(loan)
+    arrayStyle.writeEnd(ctx.writer)
   }
 
   def writeArray(arr: JArray): Unit =
@@ -54,9 +56,11 @@ class EncodingJValueWriter(ctx: EncodingContext) extends JValueWriter with AutoC
   def writeObject(sizeHint: Int)(loan: JObjectWriter => Unit): Unit = {
     consume()
 
-    ctx.writer.write('{')
-    using(new EncodingJObjectWriter(ctx))(loan)
-    ctx.writer.write('}')
+    val objectStyle = ctx.options.objectStyleAt(ctx.path, sizeHint)
+
+    objectStyle.writeStart(ctx.writer)
+    using(new EncodingJObjectWriter(ctx, objectStyle))(loan)
+    objectStyle.writeEnd(ctx.writer)
   }
 
   def writeObject(obj: JObject): Unit =
