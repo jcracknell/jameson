@@ -9,6 +9,11 @@ class EncodingJArrayWriter(ctx: EncodingContext, arrayStyle: JArrayStyle) extend
   private var closed = false
   private var controlPassed = false
 
+  def writeCount: Int = {
+    guard()
+    i
+  }
+
   def write[A](a: A)(implicit encoder: JEncoder[A]): JArrayWriter = {
     guard()
 

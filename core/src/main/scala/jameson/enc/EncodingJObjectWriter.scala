@@ -9,6 +9,11 @@ class EncodingJObjectWriter(ctx: EncodingContext, objectStyle: JObjectStyle) ext
   private var closed = false
   private var controlPassed = false
 
+  def writeCount: Int = {
+    guard()
+    i
+  }
+
   def write[A](name: String, a: A)(implicit encoder: JEncoder[A]): JObjectWriter = {
     guard()
 
