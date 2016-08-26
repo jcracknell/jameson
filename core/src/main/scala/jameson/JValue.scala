@@ -43,7 +43,7 @@ sealed trait JValue extends JLookup {
   def valueType: JValue.Type
 }
 
-object JValue extends EncodingApi {
+object JValue {
   /** Algebraic data type representing the types of [[JValue]] available.
     * Implemented by [[JValue]] companion objects.
     */
