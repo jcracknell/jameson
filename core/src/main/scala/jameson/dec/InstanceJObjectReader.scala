@@ -1,5 +1,5 @@
 package jameson
-package impl
+package dec
 
 class InstanceJObjectReader(obj: JObject) extends BaseJObjectReader {
   override protected def consume(f: (String, JReader) => Unit): Unit = {

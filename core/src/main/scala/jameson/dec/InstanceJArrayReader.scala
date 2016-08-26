@@ -1,5 +1,5 @@
 package jameson
-package impl
+package dec
 import scala.collection.mutable
 
 class InstanceJArrayReader(arr: JArray) extends BaseJArrayReader {

@@ -1,5 +1,5 @@
 package jameson
-package impl
+package dec
 
 import jameson.util.IOUtil
 import org.scalatest.{FunSpec, Matchers}

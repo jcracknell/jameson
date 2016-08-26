@@ -1,5 +1,5 @@
 package jameson
-package impl
+package dec
 
 class InstanceJStringReader(str: String) extends JStringReader {
   private var closed = false

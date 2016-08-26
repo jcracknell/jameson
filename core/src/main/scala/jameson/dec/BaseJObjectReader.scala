@@ -1,5 +1,5 @@
 package jameson
-package impl
+package dec
 
 
 abstract class BaseJObjectReader extends JObjectReader with AutoCloseable {

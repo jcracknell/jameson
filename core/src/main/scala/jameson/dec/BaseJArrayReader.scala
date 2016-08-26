@@ -1,5 +1,5 @@
 package jameson
-package impl
+package dec
 
 abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
   private var closed = false

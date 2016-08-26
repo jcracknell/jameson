@@ -1,6 +1,6 @@
 package jameson
 
-import jameson.impl.ParsingLocation
+import jameson.dec.ParsingLocation
 
 class JParsingException(
   msg: String,

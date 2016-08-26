@@ -1,5 +1,5 @@
 package jameson
-package impl
+package dec
 
 /** Represents a location within a stream of characters.
   *

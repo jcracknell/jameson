@@ -1,5 +1,5 @@
 package jameson
-package impl
+package dec
 
 import scala.annotation.tailrec
 
