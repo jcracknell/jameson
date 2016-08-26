@@ -33,7 +33,7 @@ object JObjectStyle {
     ) = this(indent, newline, compactStyle, compactSize, compactDepth, 0)
 
     override def at(path: JPath, sizeHint: Int): JObjectStyle =
-      if(compactSize >= 0 && sizeHint <= compactSize) compactStyle.at(path, sizeHint)
+      if(compactSize >= 0 && sizeHint >= 0 && sizeHint <= compactSize) compactStyle.at(path, sizeHint)
       else if(compactDepth >= 0 && path.depth >= compactDepth) compactStyle.at(path, sizeHint)
       else new Pretty(indent, newline, compactStyle, compactSize, compactDepth, path.depth)
 
