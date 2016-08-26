@@ -22,11 +22,20 @@ object JObjectStyle {
     def writeEnd(writer: Writer, size: Int): Unit = writer.write('}')
   }
 
-  class Pretty protected (indent: String, newline: String, depth: Int) extends JObjectStyle {
-    def this(indent: String = "  ", newline: String = "\n") = this(indent, newline, 0)
+  class Pretty protected (
+    indent: String, newline: String,
+    compactStyle: JObjectStyle, compactSize: Int, compactDepth: Int,
+    depth: Int
+  ) extends JObjectStyle {
+    def this(
+      indent: String = "  ", newline: String = "\n",
+      compactStyle: JObjectStyle = SingleLine, compactSize: Int = 1, compactDepth: Int = -1
+    ) = this(indent, newline, compactStyle, compactSize, compactDepth, 0)
 
     override def at(path: JPath, sizeHint: Int): JObjectStyle =
-      if(sizeHint <= 1) SingleLine else new Pretty(indent, newline, path.depth)
+      if(compactSize >= 0 && sizeHint <= compactSize) compactStyle.at(path, sizeHint)
+      else if(compactDepth >= 0 && path.depth >= compactDepth) compactStyle.at(path, sizeHint)
+      else new Pretty(indent, newline, compactStyle, compactSize, compactDepth, path.depth)
 
     def writeStart(writer: Writer): Unit = writer.write('{')
 
