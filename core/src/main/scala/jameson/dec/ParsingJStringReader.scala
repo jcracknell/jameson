@@ -107,11 +107,11 @@ class ParsingJStringReader(ctx: JParsingContext) extends JStringReader {
     * Throws an exception in the event that the reader has not been fully consumed.
     */
   override def close(): Unit = {
-    if(!ended) throw new UnsupportedOperationException("Attempt to close unconsumed JStringReader.")
+    if(!ended) throw new IllegalStateException("Attempt to close unconsumed JStringReader.")
 
     closed = true
   }
 
   @inline private def assertOpen(): Unit =
-    if(closed) throw new UnsupportedOperationException("Attempt to access closed JStringReader.")
+    if(closed) throw new IllegalStateException("Attempt to access closed JStringReader.")
 }

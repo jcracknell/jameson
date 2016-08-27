@@ -69,9 +69,9 @@ class EncodingJObjectWriter(ctx: JEncodingContext, objectStyle: JObjectStyle) ex
 
   private def guard(): Unit = {
     if(closed)
-      throw new UnsupportedOperationException("Attempted to access closed JObjectWriter.")
+      throw new IllegalStateException("Attempted to access closed JObjectWriter.")
     if(controlPassed)
-      throw new UnsupportedOperationException(s"Out of scope access for JObjectWriter(${this.path}) from ${ctx.path}")
+      throw new IllegalStateException(s"Out of scope access for JObjectWriter(${this.path}) from ${ctx.path}")
   }
 
   def close(): Unit = {

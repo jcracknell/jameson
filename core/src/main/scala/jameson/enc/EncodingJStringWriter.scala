@@ -25,6 +25,6 @@ class EncodingJStringWriter(ctx: JEncodingContext) extends JStringWriter {
 
   private def guard(): Unit = {
     if(closed)
-      throw new UnsupportedOperationException("Attempted to access closed JStringWriter.")
+      throw new IllegalStateException("Attempted to access closed JStringWriter.")
   }
 }

@@ -44,11 +44,11 @@ class InstanceJStringReader(val path: JPath, str: String) extends JStringReader 
   }
 
   override def close(): Unit = {
-    if(rp < str.length) throw new UnsupportedOperationException("Attempt to close unconsumed JStringReader.")
+    if(rp < str.length) throw new IllegalStateException("Attempt to close unconsumed JStringReader.")
 
     closed = true
   }
 
   @inline private def assertOpen(): Unit =
-    if(closed) throw new UnsupportedOperationException("Attempt to access closed JStringReader.")
+    if(closed) throw new IllegalStateException("Attempt to access closed JStringReader.")
 }

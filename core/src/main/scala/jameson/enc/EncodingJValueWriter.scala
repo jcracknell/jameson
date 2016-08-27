@@ -71,9 +71,9 @@ class EncodingJValueWriter(ctx: JEncodingContext) extends JValueWriter with Auto
 
   private def consume(): Unit = {
     if(consumed)
-      throw new UnsupportedOperationException("Attempt to access consumed JValueWriter.")
+      throw new IllegalStateException("Attempt to access consumed JValueWriter.")
     if(closed)
-      throw new UnsupportedOperationException("Attempt to access closed JValueWriter.")
+      throw new IllegalStateException("Attempt to access closed JValueWriter.")
 
     consumed = true
   }
@@ -87,7 +87,7 @@ class EncodingJValueWriter(ctx: JEncodingContext) extends JValueWriter with Auto
 
   def close(): Unit = {
     if(!consumed)
-      throw new UnsupportedOperationException("JValueWriter was not consumed.")
+      throw new IllegalStateException("JValueWriter was not consumed.")
 
     closed = true
   }

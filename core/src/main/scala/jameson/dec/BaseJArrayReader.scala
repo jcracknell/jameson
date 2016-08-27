@@ -110,14 +110,14 @@ abstract class BaseJArrayReader extends JArrayReader with AutoCloseable {
   }
 
   def close(): Unit = {
-    if(!consumed) throw new UnsupportedOperationException("Attempted to close unconsumed JArrayReader.")
+    if(!consumed) throw new IllegalStateException("Attempted to close unconsumed JArrayReader.")
 
     closed = true
   }
 
   @inline protected def guard(): Unit = {
-    if(closed) throw new UnsupportedOperationException("Attempted to access closed JArrayReader.")
-    if(consumed) throw new UnsupportedOperationException("Attempted to access consumed JArrayReader.")
+    if(closed) throw new IllegalStateException("Attempted to access closed JArrayReader.")
+    if(consumed) throw new IllegalStateException("Attempted to access consumed JArrayReader.")
 
     consumed = true
   }

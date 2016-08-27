@@ -65,9 +65,9 @@ class EncodingJArrayWriter(ctx: JEncodingContext, arrayStyle: JArrayStyle) exten
 
   private def guard(): Unit = {
     if(closed)
-      throw new UnsupportedOperationException("Attempt to access closed JArrayWriter.")
+      throw new IllegalStateException("Attempt to access closed JArrayWriter.")
     if(controlPassed)
-      throw new UnsupportedOperationException(s"Out of scope access for JArrayWriter(${this.path}) from ${ctx.path}.")
+      throw new IllegalStateException(s"Out of scope access for JArrayWriter(${this.path}) from ${ctx.path}.")
   }
 
   def close(): Unit = {

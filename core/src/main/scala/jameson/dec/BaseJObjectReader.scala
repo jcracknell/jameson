@@ -92,16 +92,16 @@ abstract class BaseJObjectReader extends JObjectReader with AutoCloseable { obje
 
   def close(): Unit = {
     if(!consumed)
-      throw new UnsupportedOperationException("Attempted to close unconsumed JObjectReader.")
+      throw new IllegalStateException("Attempted to close unconsumed JObjectReader.")
 
     closed = true
   }
 
   @inline protected def guard(): Unit = {
     if(closed)
-      throw new UnsupportedOperationException("Attempted to access closed JObjectReader.")
+      throw new IllegalStateException("Attempted to access closed JObjectReader.")
     if(consumed)
-      throw new UnsupportedOperationException("Attempted to access consumed JObjectReader.")
+      throw new IllegalStateException("Attempted to access consumed JObjectReader.")
   }
 
   protected trait BaseCapture[+A] extends JObjectReader.Capture[A] {
