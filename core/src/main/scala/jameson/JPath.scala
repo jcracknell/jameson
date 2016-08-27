@@ -12,7 +12,7 @@ sealed trait JPath {
   def apply(index: Int): JPath.Index = new JPath.Index(this, index)
 
   def /(name: String): JPath.Property = apply(name)
-  def /(index: Int): JPath.Index = apply(name)
+  def /(index: Int): JPath.Index = apply(index)
 
   protected def renderTo(writer: Writer): Unit
 

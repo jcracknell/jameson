@@ -6,6 +6,8 @@ import scala.annotation.tailrec
 import Parser._
 
 class ParsingJObjectReader(ctx: ParsingContext) extends BaseJObjectReader {
+  val path: JPath = ctx.path
+
   protected def consume(f: (String, JReader) => Unit): Unit = {
     // Initialize a buffer and StringBuilder we can reuse for every property name
     val nameBuffer = Array.ofDim[Char](64)
@@ -30,7 +32,7 @@ class ParsingJObjectReader(ctx: ParsingContext) extends BaseJObjectReader {
 
       whitespace(ctx); ctx.require(':'); whitespace(ctx)
 
-      ctx.path(name)
+      ctx.pathDown(name)
       value(ctx) { valueReader =>
         f(name, valueReader)
       }

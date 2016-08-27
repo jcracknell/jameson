@@ -146,6 +146,7 @@ object JString extends JValue.Type {
 }
 
 trait JStringReader extends Reader with JReader {
+  def path: JPath
   def copy(): JString
 }
 
@@ -178,6 +179,7 @@ object JArray extends JValue.Type {
 }
 
 trait JArrayReader extends JReader {
+  def path: JPath
   def copy(): JArray
 
   /** Consumes the reader, returning the array elements matched by the provided collector. */
@@ -257,6 +259,7 @@ object JObject extends JValue.Type {
 }
 
 trait JObjectReader extends JReader {
+  def path: JPath
   def copy(): JObject
   def collect[A](collector: PartialFunction[(String, JReader), A]): Seq[A]
 }

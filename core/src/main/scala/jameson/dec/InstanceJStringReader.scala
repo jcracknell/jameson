@@ -1,7 +1,7 @@
 package jameson
 package dec
 
-class InstanceJStringReader(str: String) extends JStringReader {
+class InstanceJStringReader(val path: JPath, str: String) extends JStringReader {
   private var closed = false
   private var rp = 0
 

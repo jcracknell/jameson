@@ -12,6 +12,7 @@ import Parser._
   * from the reader.
   */
 class ParsingJStringReader(ctx: ParsingContext) extends JStringReader {
+  val path: JPath = ctx.path
   private var ended = false
   private var closed = false
 

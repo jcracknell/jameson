@@ -20,8 +20,8 @@ final class ParsingContext(reader: Reader, private var _path: JPath) extends Rea
   private var _charIndex = 0
 
   def path: JPath = _path
-  def path(index: Int): Unit = { _path /= index }
-  def path(name: String): Unit = { _path /= name }
+  def pathDown(index: Int): Unit = { _path /= index }
+  def pathDown(name: String): Unit = { _path /= name }
   def pathUp(): Unit = { _path = path.parent }
 
   def lineNumber: Int = _lineNumber
