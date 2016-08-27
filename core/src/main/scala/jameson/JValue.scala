@@ -148,9 +148,9 @@ object JString extends JValue.Type {
 
   implicit val ordering: Ordering[JString] = Ordering.by(_.value)
 
-  def encode(str: String, writer: Writer): Unit = JStringEncoder.encode(str, writer)
+  def encode(str: String, writer: Writer): Unit = EncodingJStringWriter.encode(str, writer)
 
-  def encode(str: String): String = JStringEncoder.encode(str)
+  def encode(str: String): String = EncodingJStringWriter.encode(str)
 }
 
 trait JStringReader extends Reader with JReader {

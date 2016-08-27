@@ -3,8 +3,9 @@ package enc
 
 import org.scalatest.{FunSpec, Matchers}
 
-class JStringEncoderSpec extends FunSpec with Matchers {
-  import JStringEncoder._
+import EncodingJStringWriter._
+
+class EncodingJStringWriterSpec extends FunSpec with Matchers {
 
   case class TestOptions(
     escapeNonASCII: Boolean = defaultOptions.escapeNonASCII,

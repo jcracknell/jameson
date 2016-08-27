@@ -27,7 +27,7 @@ class EncodingJValueWriter(ctx: JEncodingContext) extends JValueWriter with Auto
   def writeString(value: String): Unit = {
     consume()
 
-    JStringEncoder.encode(value, ctx.writer, ctx.options)
+    EncodingJStringWriter.encode(value, ctx.writer, ctx.options)
   }
 
   def writeString(str: JString): Unit = writeString(str.value)
