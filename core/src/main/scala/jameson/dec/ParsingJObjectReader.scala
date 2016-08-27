@@ -3,9 +3,9 @@ package dec
 
 import scala.annotation.tailrec
 
-import Parser._
+import JParser._
 
-class ParsingJObjectReader(ctx: ParsingContext) extends BaseJObjectReader {
+class ParsingJObjectReader(ctx: JParsingContext) extends BaseJObjectReader {
   val path: JPath = ctx.path
 
   protected def consume(f: (String, JReader) => Unit): Unit = {

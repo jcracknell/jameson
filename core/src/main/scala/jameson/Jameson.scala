@@ -8,7 +8,7 @@ object Jameson extends jameson.enc.EncodingApi {
     decode(new java.io.StringReader(str))(loan)
 
   def decode[A](reader: Reader)(loan: JReader => A): A = {
-    val ctx = new ParsingContext(reader, JPath)
-    Parser.parse(ctx)(loan)
+    val ctx = new JParsingContext(reader, JPath)
+    JParser.parse(ctx)(loan)
   }
 }

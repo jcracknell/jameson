@@ -8,7 +8,7 @@ package dec
   * @param lineNumber The 1-based line index within the input stream.
   * @param columnIndex The 0-base character index within the line.
   */
-class ParsingLocation(
+class JParsingLocation(
   val path: JPath,
   val charIndex: Int,
   val lineNumber: Int,
@@ -22,7 +22,7 @@ class ParsingLocation(
   }
 
   override def equals(obj: Any): Boolean = obj match {
-    case that: ParsingLocation =>
+    case that: JParsingLocation =>
       this.path == that.path &&
       this.charIndex == that.charIndex &&
       this.lineNumber == that.lineNumber &&

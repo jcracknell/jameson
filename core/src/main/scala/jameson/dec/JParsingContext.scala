@@ -9,7 +9,7 @@ import scala.annotation.tailrec
   * its location for debugging purposes and provides parsing-related convenience
   * methods.
   */
-final class ParsingContext(reader: Reader, private var _path: JPath) extends Reader {
+final class JParsingContext(reader: Reader, private var _path: JPath) extends Reader {
   private val _buffer = Array.ofDim[Char](128)
   private var _bufferPos = 0
   private var _bufferFill = 0
@@ -27,7 +27,7 @@ final class ParsingContext(reader: Reader, private var _path: JPath) extends Rea
   def lineNumber: Int = _lineNumber
   def columnIndex: Int = _columnIndex
   def charIndex: Int = _charIndex
-  def location: ParsingLocation = new ParsingLocation(_path, _charIndex, _lineNumber, _columnIndex)
+  def location: JParsingLocation = new JParsingLocation(_path, _charIndex, _lineNumber, _columnIndex)
   def atEOF: Boolean = _atEOF
 
   def error(msg: String): Nothing = throw new JParsingException(s"$msg at $location.", location)

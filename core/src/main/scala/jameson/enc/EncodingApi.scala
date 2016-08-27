@@ -113,7 +113,7 @@ trait EncodingApi {
     escapeQuotes: Boolean = false,
     escapeSlashes: Boolean = false,
     objectStyle: JObjectStyle = JObjectStyle.Compact
-  ) extends jameson.enc.EncodingOptions {
+  ) extends jameson.enc.JEncodingOptions {
     def arrayStyleAt(path: JPath, sizeHint: Int): JArrayStyle = arrayStyle.at(path, sizeHint)
     def objectStyleAt(path: JPath, sizeHint: Int): JObjectStyle = objectStyle.at(path, sizeHint)
   }

@@ -5,7 +5,7 @@ import java.io.Writer
 
 import jameson.JPath
 
-final class EncodingContext(val writer: Writer, private var _path: JPath, val options: EncodingOptions) {
+final class JEncodingContext(val writer: Writer, private var _path: JPath, val options: JEncodingOptions) {
 
   def path: JPath = _path
 

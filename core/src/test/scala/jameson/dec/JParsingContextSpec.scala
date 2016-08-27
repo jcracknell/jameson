@@ -3,9 +3,9 @@ package dec
 
 import org.scalatest.{FunSpec, Matchers}
 
-class ParsingContextSpec extends FunSpec with Matchers {
-  implicit def mkContext(input: String): ParsingContext =
-    new ParsingContext(new java.io.StringReader(input), JPath)
+class JParsingContextSpec extends FunSpec with Matchers {
+  implicit def mkContext(input: String): JParsingContext =
+    new JParsingContext(new java.io.StringReader(input), JPath)
 
   describe("read: ()Int") {
     it("should work as expected") {

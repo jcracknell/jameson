@@ -1,7 +1,7 @@
 package jameson
 package enc
 
-class EncodingJValueWriter(ctx: EncodingContext) extends JValueWriter with AutoCloseable {
+class EncodingJValueWriter(ctx: JEncodingContext) extends JValueWriter with AutoCloseable {
   private var consumed = false
   private var closed = false
 

@@ -1,9 +1,9 @@
 package jameson
 package dec
 
-import Parser._
+import JParser._
 
-class ParsingJArrayReader(ctx: ParsingContext) extends BaseJArrayReader {
+class ParsingJArrayReader(ctx: JParsingContext) extends BaseJArrayReader {
   val path: JPath = ctx.path
 
   protected def consume(f: (Int, JReader) => Unit): Unit = {

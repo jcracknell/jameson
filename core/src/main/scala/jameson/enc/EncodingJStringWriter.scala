@@ -1,7 +1,7 @@
 package jameson
 package enc
 
-class EncodingJStringWriter(ctx: EncodingContext) extends JStringWriter {
+class EncodingJStringWriter(ctx: JEncodingContext) extends JStringWriter {
   private var closed = false
 
   override def write(c: Int): Unit = {

@@ -5,11 +5,11 @@ import org.scalatest.{FunSpec, Matchers}
 
 import scala.language.implicitConversions
 
-class ParserSpec extends FunSpec with Matchers {
-  implicit def stringAsParsingContext(input: String): ParsingContext =
-    new ParsingContext(new java.io.StringReader(input), JPath)
+class JParserSpec extends FunSpec with Matchers {
+  implicit def stringAsParsingContext(input: String): JParsingContext =
+    new JParsingContext(new java.io.StringReader(input), JPath)
 
-  def parse(ctx: ParsingContext): JValue = Parser.parse(ctx)(_.copy())
+  def parse(ctx: JParsingContext): JValue = JParser.parse(ctx)(_.copy())
 
   describe("parse") {
     it("should parse the empty object") {
@@ -58,36 +58,36 @@ class ParserSpec extends FunSpec with Matchers {
   }
   describe("number") {
     it("should parse integer values") {
-      Parser.number("0") should be (JNumber(0d))
-      Parser.number("1") should be (JNumber(1d))
-      Parser.number("2") should be (JNumber(2d))
-      Parser.number("3") should be (JNumber(3d))
-      Parser.number("4") should be (JNumber(4d))
-      Parser.number("5") should be (JNumber(5d))
-      Parser.number("6") should be (JNumber(6d))
-      Parser.number("7") should be (JNumber(7d))
-      Parser.number("8") should be (JNumber(8d))
-      Parser.number("9") should be (JNumber(9d))
-      Parser.number("123") should be (JNumber(123d))
+      JParser.number("0") should be (JNumber(0d))
+      JParser.number("1") should be (JNumber(1d))
+      JParser.number("2") should be (JNumber(2d))
+      JParser.number("3") should be (JNumber(3d))
+      JParser.number("4") should be (JNumber(4d))
+      JParser.number("5") should be (JNumber(5d))
+      JParser.number("6") should be (JNumber(6d))
+      JParser.number("7") should be (JNumber(7d))
+      JParser.number("8") should be (JNumber(8d))
+      JParser.number("9") should be (JNumber(9d))
+      JParser.number("123") should be (JNumber(123d))
     }
     it("should parse values with a decimal part") {
-      Parser.number("0.1") should be (JNumber(0.1d))
-      Parser.number("1.2") should be (JNumber(1.2d))
+      JParser.number("0.1") should be (JNumber(0.1d))
+      JParser.number("1.2") should be (JNumber(1.2d))
     }
     it("should parse values with an exponent part") {
-      Parser.number("1e3") should be (JNumber(1e3d))
-      Parser.number("1.2E3") should be (JNumber(1.2E3d))
-      Parser.number("1.3e0") should be (JNumber(1.3e0d))
-      Parser.number("1.4e02") should be (JNumber(1.4e02d))
-      Parser.number("1.5E+3") should be (JNumber(1.5E+3d))
-      Parser.number("1.6e-3") should be (JNumber(1.6E-3d))
+      JParser.number("1e3") should be (JNumber(1e3d))
+      JParser.number("1.2E3") should be (JNumber(1.2E3d))
+      JParser.number("1.3e0") should be (JNumber(1.3e0d))
+      JParser.number("1.4e02") should be (JNumber(1.4e02d))
+      JParser.number("1.5E+3") should be (JNumber(1.5E+3d))
+      JParser.number("1.6e-3") should be (JNumber(1.6E-3d))
     }
     it("should parse negative values") {
-      Parser.number("-0") should be (JNumber(-0d))
-      Parser.number("-1") should be (JNumber(-1d))
-      Parser.number("-1.2") should be (JNumber(-1.2d))
-      Parser.number("-2e3") should be (JNumber(-2e3))
-      Parser.number("-2.3e4") should be (JNumber(-2.3e4))
+      JParser.number("-0") should be (JNumber(-0d))
+      JParser.number("-1") should be (JNumber(-1d))
+      JParser.number("-1.2") should be (JNumber(-1.2d))
+      JParser.number("-2e3") should be (JNumber(-2e3))
+      JParser.number("-2.3e4") should be (JNumber(-2.3e4))
     }
   }
 }

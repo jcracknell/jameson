@@ -1,11 +1,11 @@
 package jameson
 
-import jameson.dec.ParsingLocation
+import jameson.dec.JParsingLocation
 
 class JParsingException(
   msg: String,
-  val location: Option[ParsingLocation]
+  val location: Option[JParsingLocation]
 ) extends Exception(msg) {
   def this(msg: String) = this(msg, None)
-  def this(msg: String, location: ParsingLocation) = this(msg, Some(location))
+  def this(msg: String, location: JParsingLocation) = this(msg, Some(location))
 }

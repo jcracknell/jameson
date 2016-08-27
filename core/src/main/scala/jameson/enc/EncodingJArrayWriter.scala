@@ -1,7 +1,7 @@
 package jameson
 package enc
 
-class EncodingJArrayWriter(ctx: EncodingContext, arrayStyle: JArrayStyle) extends JArrayWriter with AutoCloseable {
+class EncodingJArrayWriter(ctx: JEncodingContext, arrayStyle: JArrayStyle) extends JArrayWriter with AutoCloseable {
   private val path = ctx.path
   private val valueWriter = new EncodingJValueWriter(ctx)
 

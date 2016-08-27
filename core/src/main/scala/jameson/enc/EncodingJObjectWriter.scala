@@ -1,7 +1,7 @@
 package jameson
 package enc
 
-class EncodingJObjectWriter(ctx: EncodingContext, objectStyle: JObjectStyle) extends JObjectWriter with AutoCloseable {
+class EncodingJObjectWriter(ctx: JEncodingContext, objectStyle: JObjectStyle) extends JObjectWriter with AutoCloseable {
   private val path = ctx.path
   private val valueWriter = new EncodingJValueWriter(ctx)
 

@@ -4,14 +4,14 @@ package dec
 import jameson.util.IOUtil
 
 import scala.annotation.tailrec
-import Parser._
+import JParser._
 
 /** [[java.io.Reader]] implementation which decodes a JSON string from an underlying
   * [[java.io.Reader]]. Reading ends when a closing U+0022 QUOTATION MARK character
   * is encountered. Note that the leading quotation mark should have been consumed
   * from the reader.
   */
-class ParsingJStringReader(ctx: ParsingContext) extends JStringReader {
+class ParsingJStringReader(ctx: JParsingContext) extends JStringReader {
   val path: JPath = ctx.path
   private var ended = false
   private var closed = false

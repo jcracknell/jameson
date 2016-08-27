@@ -3,7 +3,7 @@ package dec
 
 import scala.annotation.tailrec
 
-object Parser {
+object JParser {
   // Syntax characters
   val LEFT_SQUARE_BRACKET  = 0x5B
   val LEFT_CURLY_BRACKET   = 0x7B
@@ -32,7 +32,7 @@ object Parser {
   val CR  = 0x0D
   val SP  = 0x20
 
-  def parse[A](ctx: ParsingContext)(handler: JReader => A): A = {
+  def parse[A](ctx: JParsingContext)(handler: JReader => A): A = {
     whitespace(ctx)
     val result = value(ctx)(handler)
     whitespace(ctx)
@@ -43,7 +43,7 @@ object Parser {
     result
   }
 
-  def value[A](ctx: ParsingContext)(handler: JReader => A): A = ctx.peek() match {
+  def value[A](ctx: JParsingContext)(handler: JReader => A): A = ctx.peek() match {
     case LOWERCASE_F => ctx.require("false"); handler(JFalse)
     case LOWERCASE_T => ctx.require("true"); handler(JTrue)
     case LOWERCASE_N => ctx.require("null"); handler(JNull)
@@ -61,7 +61,7 @@ object Parser {
     case _          => ctx.error("JSON syntax error")
   }
 
-  def number(ctx: ParsingContext): JNumber = {
+  def number(ctx: JParsingContext): JNumber = {
     // -?(0|[1-9][0-9]*)([.][0-9]+)?([eE][+-]?[0-9]+)
     val sb = new java.lang.StringBuilder(16)
 
@@ -128,7 +128,7 @@ object Parser {
   }
 
   /** Consumes any whitespace characters in the input stream. Returns true as a convenience. */
-  def whitespace(ctx: ParsingContext): Boolean = {
+  def whitespace(ctx: JParsingContext): Boolean = {
     while(isWhitespace(ctx.peek()))
       ctx.drop(1)
 
