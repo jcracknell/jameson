@@ -36,11 +36,11 @@ class ParsingJObjectReader(ctx: JParsingContext) extends BaseJObjectReader {
 
       whitespace(ctx); ctx.require(':'); whitespace(ctx)
 
-      ctx.pathDown(name)
+      ctx.path = ctx.path / name
       value(ctx) { valueReader =>
         f(name, valueReader)
       }
-      ctx.pathUp()
+      ctx.path = ctx.path.parent
     } while(whitespace(ctx) && ctx.consume(',') && whitespace(ctx))
 
     ctx.require('}')

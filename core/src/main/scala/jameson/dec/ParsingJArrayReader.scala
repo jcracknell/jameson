@@ -12,11 +12,11 @@ class ParsingJArrayReader(ctx: JParsingContext) extends BaseJArrayReader {
     ctx.require('[')
 
     if(whitespace(ctx) && !ctx.ahead(']')) do {
-      ctx.pathDown(i)
+      ctx.path = ctx.path / i
       value(ctx) { valueReader =>
         f(i, valueReader)
       }
-      ctx.pathUp()
+      ctx.path = ctx.path.parent
 
       i += 1
     } while(whitespace(ctx) && ctx.consume(',') && whitespace(ctx))
