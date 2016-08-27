@@ -24,10 +24,14 @@ class ParsingJObjectReader(ctx: JParsingContext) extends BaseJObjectReader {
     ctx.require('{')
 
     if(whitespace(ctx) && !ctx.ahead('}')) do {
-      if(!ctx.consume('"'))
-        ctx.error("Expected property name")
+      val quote = ctx.peek() match {
+        case DOUBLE_QUOTE => DOUBLE_QUOTE
+        case SINGLE_QUOTE if ctx.options.allowSingleQuotes => SINGLE_QUOTE
+        case _ => ctx.error("Expected property name")
+      }
 
-      val name = readName(new ParsingJStringReader(ctx))
+      ctx.drop(1)
+      val name = readName(new ParsingJStringReader(ctx, quote))
       nameBuilder.setLength(0)
 
       whitespace(ctx); ctx.require(':'); whitespace(ctx)

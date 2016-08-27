@@ -1,13 +1,14 @@
 package jameson
 package dec
 
+import java.io.StringReader
 import jameson.util.IOUtil
 import org.scalatest.{FunSpec, Matchers}
 
 class ParsingJStringReaderSpec extends FunSpec with Matchers {
   def read(str: String): String = {
-    val ctx = new JParsingContext(new java.io.StringReader(str), JPath, new Jameson.ParsingOptions())
-    using(new ParsingJStringReader(ctx)) { reader =>
+    val ctx = new JParsingContext(new StringReader(str), JPath, new Jameson.ParsingOptions())
+    using(new ParsingJStringReader(ctx, '"')) { reader =>
       IOUtil.readAll(reader)
     }
   }
@@ -55,5 +56,26 @@ class ParsingJStringReaderSpec extends FunSpec with Matchers {
   }
   it("should throw an exception for a string containing a control character") {
     intercept[JParsingException] { read("z\u0003z\"")}
+  }
+  it("should throw an exception for an escaped single quote") {
+    intercept[JParsingException] { read("\\'\"")}
+  }
+  it("should read a single quoted string when configured to do so") {
+    val input = "foo'"
+    val ctx = new JParsingContext(new StringReader(input), JPath, new Jameson.ParsingOptions(allowSingleQuotes = true))
+    val out = using(new ParsingJStringReader(ctx, '\'')) { reader =>
+      IOUtil.readAll(reader)
+    }
+
+    out should be ("foo")
+  }
+  it("should read an escaped single quote when configured to do so") {
+    val input = "foo\\'bar'"
+    val ctx = new JParsingContext(new StringReader(input), JPath, new Jameson.ParsingOptions(allowSingleQuotes = true))
+    val out = using(new ParsingJStringReader(ctx, '\'')) { reader =>
+      IOUtil.readAll(reader)
+    }
+
+    out should be ("foo'bar")
   }
 }

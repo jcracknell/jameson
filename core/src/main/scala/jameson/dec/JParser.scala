@@ -22,6 +22,7 @@ object JParser {
   val PLUS_SIGN            = 0x2B
   val RIGHT_CURLY_BRACKET  = 0x7D
   val RIGHT_SQUARE_BRACKET = 0x5D
+  val SINGLE_QUOTE         = 0x27
   val UPPERCASE_E          = 0x45
   val ZERO                 = 0x30
 
@@ -50,11 +51,15 @@ object JParser {
     case LEFT_CURLY_BRACKET => using(new ParsingJObjectReader(ctx))(handler)
 
     case DOUBLE_QUOTE =>
-      ctx.require('"')
-      using(new ParsingJStringReader(ctx))(handler)
+      ctx.drop(1)
+      using(new ParsingJStringReader(ctx, DOUBLE_QUOTE))(handler)
 
     case 0x30 | 0x31 | 0x32 | 0x33 | 0x34 | 0x35 | 0x36 | 0x37 | 0x38 | 0x39 | MINUS_SIGN =>
       handler(number(ctx))
+
+    case SINGLE_QUOTE if ctx.options.allowSingleQuotes =>
+      ctx.drop(1)
+      using(new ParsingJStringReader(ctx, SINGLE_QUOTE))(handler)
 
     case c if c < 0 => ctx.error("Unexpected end of input")
     case _          => ctx.error("JSON syntax error")

@@ -11,7 +11,10 @@ import JParser._
   * is encountered. Note that the leading quotation mark should have been consumed
   * from the reader.
   */
-class ParsingJStringReader(ctx: JParsingContext) extends JStringReader {
+class ParsingJStringReader(ctx: JParsingContext, quote: Int) extends JStringReader {
+  if(!(quote == DOUBLE_QUOTE || quote == SINGLE_QUOTE && ctx.options.allowSingleQuotes))
+    throw new IllegalArgumentException("Invalid quote.")
+
   val path: JPath = ctx.path
   private var ended = false
   private var closed = false
@@ -33,31 +36,36 @@ class ParsingJStringReader(ctx: JParsingContext) extends JStringReader {
   override def read(): Int = {
     assertOpen()
 
-    if(ended) -1 else ctx.peek() match {
-      case BACKSLASH => readEscape()
-      case DOUBLE_QUOTE =>
+    if(ended) -1 else {
+      val c = ctx.peek()
+
+      if(c == BACKSLASH) {
+        readEscape()
+      } else if(c == quote) {
         ctx.drop(1)
         ended = true
         -1
-      case c =>
+      } else {
         if(Character.isISOControl(c)) ctx.error("Invalid character in JSON string")
         if(c < 0) ctx.error("Unterminated JSON string")
 
         ctx.drop(1)
         c
+      }
     }
   }
 
   private def readEscape(): Int = ctx.peek(1) match {
-    case 0x22 => ctx.drop(2); 0x22 // '"'
-    case 0x5C => ctx.drop(2); 0x5C // '\\'
-    case 0x2F => ctx.drop(2); 0x2F // '/'
+    case DOUBLE_QUOTE => ctx.drop(2); DOUBLE_QUOTE
+    case BACKSLASH => ctx.drop(2); BACKSLASH
+    case FORWARD_SLASH => ctx.drop(2); FORWARD_SLASH
     case 0x62 => ctx.drop(2); 0x08 // '\b'
     case 0x66 => ctx.drop(2); 0x0C // '\f'
     case 0x6E => ctx.drop(2); 0x0A // '\n'
     case 0x72 => ctx.drop(2); 0x0D // '\r'
     case 0x74 => ctx.drop(2); 0x09 // '\t'
     case 0x75 => readUnicodeEscape()
+    case SINGLE_QUOTE if ctx.options.allowSingleQuotes => ctx.drop(2); SINGLE_QUOTE
     case _ => ctx.error("Invalid escape sequence in JSON string")
   }
 
@@ -91,8 +99,7 @@ class ParsingJStringReader(ctx: JParsingContext) extends JStringReader {
   def discard(): Unit = {
     assertOpen()
 
-    val buffer = Array.ofDim[Char](128)
-    while(read(buffer, 0, buffer.length) > 0) {}
+    while(read() >= 0) {}
   }
 
   def copy(): JString = {

@@ -123,7 +123,8 @@ object Jameson {
     encodeObject(writer, coll.size, options) { objectWriter => coll foreach { a => each(a, objectWriter) } }
 
   case class ParsingOptions(
-    allowComments: Boolean = false
+    allowComments: Boolean = false,
+    allowSingleQuotes: Boolean = false
   ) extends JParsingOptions
 
   case class EncodingOptions(
