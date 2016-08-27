@@ -6,10 +6,16 @@ import java.io.{Reader, StringWriter, Writer}
 
 object Jameson {
   def decode[A](str: String)(loan: JReader => A): A =
-    decode(new java.io.StringReader(str))(loan)
+    decode(str, new ParsingOptions())(loan)
 
-  def decode[A](reader: Reader)(loan: JReader => A): A = {
-    val ctx = new JParsingContext(reader, JPath)
+  def decode[A](str: String, options: ParsingOptions)(loan: JReader => A): A =
+    decode(new java.io.StringReader(str), options)(loan)
+
+  def decode[A](reader: Reader)(loan: JReader => A): A =
+    decode(reader, new ParsingOptions())(loan)
+
+  def decode[A](reader: Reader, options: ParsingOptions)(loan: JReader => A): A = {
+    val ctx = new JParsingContext(reader, JPath, options)
     JParser.parse(ctx)(loan)
   }
 
@@ -115,6 +121,10 @@ object Jameson {
 
   def encodeObjectFrom[A](writer: Writer, options: EncodingOptions)(coll: Traversable[A])(each: (A, JObjectWriter) => Unit): Unit =
     encodeObject(writer, coll.size, options) { objectWriter => coll foreach { a => each(a, objectWriter) } }
+
+  case class ParsingOptions(
+    allowComments: Boolean = false
+  ) extends JParsingOptions
 
   case class EncodingOptions(
     arrayStyle: JArrayStyle = JArrayStyle.Compact,

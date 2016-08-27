@@ -6,7 +6,7 @@ import org.scalatest.{FunSpec, Matchers}
 
 class ParsingJStringReaderSpec extends FunSpec with Matchers {
   def read(str: String): String = {
-    val ctx = new JParsingContext(new java.io.StringReader(str), JPath)
+    val ctx = new JParsingContext(new java.io.StringReader(str), JPath, new Jameson.ParsingOptions())
     using(new ParsingJStringReader(ctx)) { reader =>
       IOUtil.readAll(reader)
     }

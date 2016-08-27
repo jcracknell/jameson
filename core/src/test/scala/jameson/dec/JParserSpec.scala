@@ -1,13 +1,15 @@
 package jameson
 package dec
 
+import java.io.StringReader
+
 import org.scalatest.{FunSpec, Matchers}
 
 import scala.language.implicitConversions
 
 class JParserSpec extends FunSpec with Matchers {
-  implicit def stringAsParsingContext(input: String): JParsingContext =
-    new JParsingContext(new java.io.StringReader(input), JPath)
+  implicit def mkContext(str: String): JParsingContext =
+    new JParsingContext(new java.io.StringReader(str), JPath, new Jameson.ParsingOptions())
 
   def parse(ctx: JParsingContext): JValue = JParser.parse(ctx)(_.copy())
 
@@ -88,6 +90,26 @@ class JParserSpec extends FunSpec with Matchers {
       JParser.number("-1.2") should be (JNumber(-1.2d))
       JParser.number("-2e3") should be (JNumber(-2e3))
       JParser.number("-2.3e4") should be (JNumber(-2.3e4))
+    }
+  }
+  describe("whitespace") {
+    it("should parse single line comments when configured to do so") {
+      val input = """// foo bar baz"""
+      val ctx = new JParsingContext(new StringReader(input), JPath, new Jameson.ParsingOptions(allowComments = true))
+
+      ctx.charIndex should be (0)
+      JParser.whitespace(ctx) should be (true)
+      ctx.charIndex should not be (0)
+      ctx.atEOF should be (true)
+    }
+    it("should parse multi-line comments when configured to do so") {
+      val input = "/* foo \n bar */"
+      val ctx = new JParsingContext(new StringReader(input), JPath, new Jameson.ParsingOptions(allowComments = true))
+
+      ctx.charIndex should be (0)
+      JParser.whitespace(ctx) should be (true)
+      ctx.charIndex should not be (0)
+      ctx.atEOF should be (true)
     }
   }
 }

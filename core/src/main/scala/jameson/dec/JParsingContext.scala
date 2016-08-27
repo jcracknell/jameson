@@ -9,7 +9,7 @@ import scala.annotation.tailrec
   * its location for debugging purposes and provides parsing-related convenience
   * methods.
   */
-final class JParsingContext(reader: Reader, private var _path: JPath) extends Reader {
+final class JParsingContext(reader: Reader, private var _path: JPath, val options: JParsingOptions) extends Reader {
   private val _buffer = Array.ofDim[Char](128)
   private var _bufferPos = 0
   private var _bufferFill = 0

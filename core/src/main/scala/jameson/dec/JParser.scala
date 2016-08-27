@@ -4,27 +4,26 @@ package dec
 import scala.annotation.tailrec
 
 object JParser {
-  // Syntax characters
-  val LEFT_SQUARE_BRACKET  = 0x5B
-  val LEFT_CURLY_BRACKET   = 0x7B
-  val RIGHT_SQUARE_BRACKET = 0x5D
-  val RIGHT_CURLY_BRACKET  = 0x7D
+  val ASTERIX              = 0x2A
+  val BACKSLASH            = 0x5C
   val COLON                = 0x3A
   val COMMA                = 0x2C
+  val DOUBLE_QUOTE         = 0x22
+  val FORWARD_SLASH        = 0x2F
+  val LEFT_CURLY_BRACKET   = 0x7B
+  val LEFT_SQUARE_BRACKET  = 0x5B
+  val LOWERCASE_E          = 0x65
+  val LOWERCASE_F          = 0x66
+  val LOWERCASE_N          = 0x6E
+  val LOWERCASE_T          = 0x74
+  val LOWERCASE_U          = 0x75
+  val MINUS_SIGN           = 0x2D
   val PERIOD               = 0x2E
-  val BACKSLASH            = 0x5C
-
-  // Identifying characters
-  val ZERO         = 0x30
-  val UPPERCASE_E  = 0x45
-  val LOWERCASE_E  = 0x65
-  val LOWERCASE_F  = 0x66
-  val LOWERCASE_N  = 0x6E
-  val LOWERCASE_T  = 0x74
-  val LOWERCASE_U  = 0x75
-  val MINUS_SIGN   = 0x2D
-  val PLUS_SIGN    = 0x2B
-  val DOUBLE_QUOTE = 0x22
+  val PLUS_SIGN            = 0x2B
+  val RIGHT_CURLY_BRACKET  = 0x7D
+  val RIGHT_SQUARE_BRACKET = 0x5D
+  val UPPERCASE_E          = 0x45
+  val ZERO                 = 0x30
 
   // Whitespace characters
   val TAB = 0x09
@@ -129,8 +128,33 @@ object JParser {
 
   /** Consumes any whitespace characters in the input stream. Returns true as a convenience. */
   def whitespace(ctx: JParsingContext): Boolean = {
-    while(isWhitespace(ctx.peek()))
-      ctx.drop(1)
+    def ws(): Unit = {
+      while(isWhitespace(ctx.peek()))
+        ctx.drop(1)
+    }
+
+    def comment(): Boolean = if(!ctx.ahead('/')) false else ctx.peek(1) match {
+      case FORWARD_SLASH =>
+        ctx.drop(2)
+        while(!ctx.atEOF && !ctx.consume('\n'))
+          ctx.drop(1)
+        true
+
+      case ASTERIX =>
+        ctx.drop(2)
+        while(!ctx.atEOF && !ctx.ahead("*/"))
+          ctx.drop(1)
+        ctx.require("*/")
+        true
+
+      case _ => false
+    }
+
+    if(ctx.options.allowComments) {
+      do ws() while(comment())
+    } else {
+      ws()
+    }
 
     true
   }

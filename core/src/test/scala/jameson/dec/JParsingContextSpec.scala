@@ -2,10 +2,11 @@ package jameson
 package dec
 
 import org.scalatest.{FunSpec, Matchers}
+import scala.language.implicitConversions
 
 class JParsingContextSpec extends FunSpec with Matchers {
   implicit def mkContext(input: String): JParsingContext =
-    new JParsingContext(new java.io.StringReader(input), JPath)
+    new JParsingContext(new java.io.StringReader(input), JPath, new Jameson.ParsingOptions())
 
   describe("read: ()Int") {
     it("should work as expected") {
