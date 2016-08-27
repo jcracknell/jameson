@@ -8,8 +8,11 @@ sealed trait JPath {
   def depth: Int
   def resolve(ctx: JLookup): JLookup
 
-  def /(name: String): JPath = new JPath.Property(this, name)
-  def /(index: Int): JPath = new JPath.Index(this, index)
+  def apply(name: String): JPath.Property = new JPath.Property(this, name)
+  def apply(index: Int): JPath.Index = new JPath.Index(this, index)
+
+  def /(name: String): JPath.Property = apply(name)
+  def /(index: Int): JPath.Index = apply(name)
 
   protected def renderTo(writer: Writer): Unit
 
