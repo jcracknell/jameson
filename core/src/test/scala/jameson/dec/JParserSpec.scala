@@ -17,22 +17,22 @@ class JParserSpec extends FunSpec with Matchers {
       parse("{ }") should be (JObject())
     }
     it("should parse an object with a single property") {
-      parse("""{ "foo": "bar" }""") should be(JObject("foo" -> JString("bar")))
+      parse("""{ "foo": "bar" }""") should be(JObject("foo" := JString("bar")))
     }
     it("should parse an object with multiple properties") {
-      parse("""{ "a":1, "b":2, "c":3 }""") should be (JObject("a" -> JNumber(1), "b" -> JNumber(2), "c" -> JNumber(3)))
+      parse("""{ "a":1, "b":2, "c":3 }""") should be (JObject("a" := JNumber(1), "b" := JNumber(2), "c" := JNumber(3)))
     }
     it("should parse an object with any property type") {
       parse("""{
         "null": null, "true": true, "false": false, "number": 123, "string": "foo",
         "array": [1,2,3], "object": { "foo": "bar" }
       }""") should be (JObject(
-        "null" -> JNull,
-        "true" -> JTrue, "false" -> JFalse,
-        "number" -> JNumber(123),
-        "string" -> JString("foo"),
-        "array" -> JArray(JNumber(1), JNumber(2), JNumber(3)),
-        "object" -> JObject("foo" -> JString("bar"))
+        "null" := JNull,
+        "true" := JTrue, "false" := JFalse,
+        "number" := JNumber(123),
+        "string" := JString("foo"),
+        "array" := JArray(JNumber(1), JNumber(2), JNumber(3)),
+        "object" := JObject("foo" := JString("bar"))
       ))
     }
     it("should parse the empty array") {
@@ -52,7 +52,7 @@ class JParserSpec extends FunSpec with Matchers {
         JNumber(123),
         JString("foo"),
         JArray(JNumber(1), JNumber(2), JNumber(3)),
-        JObject("foo" -> JString("bar"))
+        JObject("foo" := JString("bar"))
       ))
     }
   }

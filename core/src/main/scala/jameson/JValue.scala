@@ -2,8 +2,8 @@ package jameson
 
 import java.io.{Reader, Writer}
 import jameson.enc._
-
 import scala.collection.{immutable => sci}
+import scala.language.implicitConversions
 
 sealed trait JLookup {
   def isUndefined: Boolean
@@ -48,6 +48,18 @@ object JValue {
     * Implemented by [[JValue]] companion objects.
     */
   sealed trait Type
+
+  class Repr[+J <: JValue](val value: J) extends AnyVal
+  object Repr {
+    implicit def fromJValue[J <: JValue](v: J): Repr[J] = new Repr(v)
+    implicit def fromNull(v: Null): Repr[JNull.type] = new Repr(JNull)
+    implicit def fromBoolean(v: Boolean): Repr[JBoolean] = new Repr(JBoolean(v))
+    implicit def fromDouble(v: Double): Repr[JNumber] = new Repr(new JNumber(v))
+    implicit def fromFloat(v: Float): Repr[JNumber] = new Repr(new JNumber(v.toDouble))
+    implicit def fromInt(v: Int): Repr[JNumber] = new Repr(new JNumber(v.toDouble))
+    implicit def fromShort(v: Short): Repr[JNumber] = new Repr(new JNumber(v.toDouble))
+    implicit def fromString(v: String): Repr[JString] = new Repr(new JString(v))
+  }
 }
 
 
@@ -120,10 +132,7 @@ class JNumber(val value: Double) extends JScalar with JReader {
 }
 
 object JNumber extends JValue.Type {
-  def apply(value: Double): JNumber = new JNumber(value)
-  def apply(value: Float): JNumber = new JNumber(value.toDouble)
-  def apply(value: Int): JNumber = new JNumber(value.toDouble)
-  def apply(value: Short): JNumber = new JNumber(value.toDouble)
+  def apply(repr: JValue.Repr[JNumber]): JNumber = repr.value
 
   def unapply(n: JNumber): Option[Double] = if(n == null) None else Some(n.value)
 
@@ -173,7 +182,7 @@ object JArray extends JValue.Type {
 
   def apply(): JArray = empty
   def apply(es: Seq[JValue]): JArray = new JArray(es.toVector)
-  def apply(e0: JValue, es: JValue*): JArray = apply(e0 +: es)
+  def apply(e0: JValue.Repr[JValue], es: JValue.Repr[JValue]*): JArray = apply(e0.value +: es.view.map(_.value))
 
   def unapplySeq(a: JArray): Option[IndexedSeq[JValue]] = if(a == null) None else Some(a.elements)
 }
@@ -225,7 +234,7 @@ object JObject extends JValue.Type {
   val empty: JObject = new JObject(Vector.empty, Map.empty)
 
   def apply(): JObject = empty
-  def apply(m0: (String, JValue), ms: (String, JValue)*): JObject = builder.add(m0).add(ms).result
+  def apply(m0: Mapping, ms: Mapping*): JObject = builder.add(m0.tup).add(ms.view.map(_.tup)).result
   def apply(map: Map[String, JValue]): JObject = new JObject(map.to[sci.Seq], map)
   def apply(seq: Seq[(String, JValue)]): JObject = builder.add(seq).result
 
@@ -233,6 +242,11 @@ object JObject extends JValue.Type {
 
   def builder: Builder = builder(JObject.empty)
   def builder(o: JObject): Builder = new BuilderImpl(o.seq, o.map)
+
+  class Mapping(val tup: (String, JValue)) extends AnyVal
+  object Mapping {
+    implicit def fromTuple(tup: (String, JValue)): Mapping = new Mapping(tup)
+  }
 
   trait Builder {
     def result: JObject

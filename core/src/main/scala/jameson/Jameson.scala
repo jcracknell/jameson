@@ -1,7 +1,8 @@
 package jameson
 
 import jameson.dec._
-import java.io.Reader
+import jameson.enc._
+import java.io.{Reader, StringWriter, Writer}
 
 object Jameson {
   def decode[A](str: String)(loan: JReader => A): A =
@@ -25,7 +26,7 @@ object Jameson {
     encode(a, writer, new EncodingOptions())
 
   def encode[A](a: A, writer: Writer, options: EncodingOptions)(implicit encoder: JEncoder[A]): Unit = {
-    val ctx = new EncodingContext(writer, JPath, options)
+    val ctx = new JEncodingContext(writer, JPath, options)
     using(new EncodingJValueWriter(ctx)) { valueWriter =>
       encoder.encode(a, valueWriter)
     }
@@ -49,7 +50,7 @@ object Jameson {
     encodeArray(writer, -1, options)(loan)
 
   def encodeArray(writer: Writer, sizeHint: Int, options: EncodingOptions)(loan: JArrayWriter => Unit): Unit = {
-    val ctx = new EncodingContext(writer, JPath, options)
+    val ctx = new JEncodingContext(writer, JPath, options)
     using(new EncodingJArrayWriter(ctx, options.arrayStyleAt(ctx.path, sizeHint))) { arrayWriter =>
       loan(arrayWriter)
     }
@@ -94,7 +95,7 @@ object Jameson {
     encodeObject(writer, sizeHint, new EncodingOptions())(loan)
 
   def encodeObject(writer: Writer, sizeHint: Int, options: EncodingOptions)(loan: JObjectWriter => Unit): Unit = {
-    val ctx = new EncodingContext(writer, JPath, options)
+    val ctx = new JEncodingContext(writer, JPath, options)
     using(new EncodingJObjectWriter(ctx, options.objectStyleAt(ctx.path, sizeHint))) { objectWriter =>
       loan(objectWriter)
     }
