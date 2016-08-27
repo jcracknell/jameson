@@ -2,7 +2,7 @@ package jameson
 package enc
 
 class EncodingJArrayWriter(ctx: JEncodingContext, arrayStyle: JArrayStyle) extends JArrayWriter with AutoCloseable {
-  private val path = ctx.path
+  val path = ctx.path
   private val valueWriter = new EncodingJValueWriter(ctx)
 
   private var i = 0
@@ -18,7 +18,7 @@ class EncodingJArrayWriter(ctx: JEncodingContext, arrayStyle: JArrayStyle) exten
     guard()
 
     down()
-    using(valueWriter.reset()) { _ =>
+    using(valueWriter.reset(ctx.path)) { _ =>
       encoder.encode(a, valueWriter)
     }
     up()
@@ -28,7 +28,7 @@ class EncodingJArrayWriter(ctx: JEncodingContext, arrayStyle: JArrayStyle) exten
     guard()
 
     down()
-    valueWriter.reset().writeArray(sizeHint)(loan)
+    valueWriter.reset(ctx.path).writeArray(sizeHint)(loan)
     up()
   }
 
@@ -36,7 +36,7 @@ class EncodingJArrayWriter(ctx: JEncodingContext, arrayStyle: JArrayStyle) exten
     guard()
 
     down()
-    valueWriter.reset().writeObject(sizeHint)(loan)
+    valueWriter.reset(ctx.path).writeObject(sizeHint)(loan)
     up()
   }
 
@@ -44,7 +44,7 @@ class EncodingJArrayWriter(ctx: JEncodingContext, arrayStyle: JArrayStyle) exten
     guard()
 
     down()
-    valueWriter.reset().writeString(loan)
+    valueWriter.reset(ctx.path).writeString(loan)
     up()
   }
 

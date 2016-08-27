@@ -2,8 +2,11 @@ package jameson
 package enc
 
 class EncodingJValueWriter(ctx: JEncodingContext) extends JValueWriter with AutoCloseable {
+  private var _path = ctx.path
   private var consumed = false
   private var closed = false
+
+  def path: JPath = _path
 
   def writeBoolean(value: Boolean): Unit = {
     consume()
@@ -79,7 +82,8 @@ class EncodingJValueWriter(ctx: JEncodingContext) extends JValueWriter with Auto
   }
 
   /** Resets the writer to the open, unconsumed state. */
-  def reset(): EncodingJValueWriter = {
+  def reset(p: JPath): this.type = {
+    _path = p
     consumed = false
     closed = false
     this

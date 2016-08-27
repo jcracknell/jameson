@@ -2,7 +2,7 @@ package jameson
 package enc
 
 class EncodingJObjectWriter(ctx: JEncodingContext, objectStyle: JObjectStyle) extends JObjectWriter with AutoCloseable {
-  private val path = ctx.path
+  val path = ctx.path
   private val valueWriter = new EncodingJValueWriter(ctx)
 
   private var i = 0
@@ -18,7 +18,7 @@ class EncodingJObjectWriter(ctx: JEncodingContext, objectStyle: JObjectStyle) ex
     guard()
 
     down(name)
-    using(valueWriter.reset()) { _ =>
+    using(valueWriter.reset(ctx.path)) { _ =>
       encoder.encode(a, valueWriter)
     }
     up()
@@ -28,7 +28,7 @@ class EncodingJObjectWriter(ctx: JEncodingContext, objectStyle: JObjectStyle) ex
     guard()
 
     down(name)
-    valueWriter.reset().writeArray(sizeHint)(loan)
+    valueWriter.reset(ctx.path).writeArray(sizeHint)(loan)
     up()
   }
 
@@ -36,7 +36,7 @@ class EncodingJObjectWriter(ctx: JEncodingContext, objectStyle: JObjectStyle) ex
     guard()
 
     down(name)
-    valueWriter.reset().writeObject(sizeHint)(loan)
+    valueWriter.reset(ctx.path).writeObject(sizeHint)(loan)
     up()
   }
 
@@ -44,7 +44,7 @@ class EncodingJObjectWriter(ctx: JEncodingContext, objectStyle: JObjectStyle) ex
     guard()
 
     down(name)
-    valueWriter.reset().writeString(loan)
+    valueWriter.reset(ctx.path).writeString(loan)
     up()
   }
 

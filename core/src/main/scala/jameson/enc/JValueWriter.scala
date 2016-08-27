@@ -5,6 +5,8 @@ package enc
   * write out a single JSON value.
   */
 trait JValueWriter {
+  def path: JPath
+
   def writeArray(arr: JArray): Unit
   def writeArray(sizeHint: Int)(loan: JArrayWriter => Unit): Unit
   def writeBoolean(value: Boolean): Unit

@@ -4,6 +4,7 @@ package enc
 import java.io.{StringWriter, Writer}
 
 class EncodingJStringWriter(ctx: JEncodingContext) extends JStringWriter {
+  val path = ctx.path
   private var closed = false
 
   override def write(c: Int): Unit = {

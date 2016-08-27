@@ -2,6 +2,8 @@ package jameson
 package enc
 
 trait JObjectWriter {
+  def path: JPath
+
   def write[A](name: String, a: A)(implicit encoder: JEncoder[A]): JObjectWriter
   def writeArray(name: String, sizeHint: Int)(loan: JArrayWriter => Unit): JObjectWriter
   def writeObject(name: String, sizeHint: Int)(loan: JObjectWriter => Unit): JObjectWriter
