@@ -48,7 +48,6 @@ object JValue {
     * Implemented by [[JValue]] companion objects.
     */
   sealed trait Type
-
 }
 
 
@@ -148,6 +147,7 @@ object JString extends JValue.Type {
 trait JStringReader extends Reader with JReader {
   def path: JPath
   def copy(): JString
+  override def toString: String = s"JStringReader($path)"
 }
 
 class JArray(val elements: scala.collection.immutable.IndexedSeq[JValue]) extends JValue {
@@ -193,6 +193,8 @@ trait JArrayReader extends JReader {
 
   def map[A](projection: JReader => A): IndexedSeq[A]
   def mapIndexed[A](projection: (Int, JReader) => A): IndexedSeq[A]
+
+  override def toString: String = s"JArrayReader($path)"
 }
 
 class JObject protected (
@@ -260,6 +262,30 @@ object JObject extends JValue.Type {
 
 trait JObjectReader extends JReader {
   def path: JPath
-  def copy(): JObject
+
+  def capture[A](name: String)(collector: PartialFunction[JReader, A]): JObjectReader.Capture[A]
+  def captureValue(name: String): JObjectReader.Capture[JValue]
   def collect[A](collector: PartialFunction[(String, JReader), A]): Seq[A]
+  def collectAll[A](collector: PartialFunction[(String, JReader), A]): (Seq[A], Seq[(String, JValue)])
+  def copy(): JObject
+
+  override def toString: String = s"JObjectReader($path)"
+}
+
+object JObjectReader {
+  trait Capture[+A] {
+    def path: JPath.Property
+    def name: String = path.name
+
+    def get: A
+
+    def wasCaptured: Boolean
+    def wasPresent: Boolean
+    def wasMismatch: Boolean = wasPresent && !wasCaptured
+    def wasMissing: Boolean = !wasPresent
+
+    def isDefined: Boolean = wasCaptured
+
+    def toOption: Option[A] = if(wasCaptured) Some(get) else None
+  }
 }
