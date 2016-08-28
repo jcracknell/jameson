@@ -19,6 +19,11 @@ final class JParsingContext(reader: Reader, var path: JPath, val options: JParsi
   private var _columnIndex = 0
   private var _charIndex = 0
 
+  /** Handy reusable character buffer. Should only be used in circumstances where
+    * control will not be passed to a child scope.
+    */
+  val charBuffer = Array.ofDim[Char](1024)
+
   def lineNumber: Int = _lineNumber
   def columnIndex: Int = _columnIndex
   def charIndex: Int = _charIndex

@@ -9,14 +9,13 @@ class ParsingJObjectReader(ctx: JParsingContext) extends BaseJObjectReader {
   val path: JPath = ctx.path
 
   protected def consume(f: (String, JReader) => Unit): Unit = {
-    // Initialize a buffer and StringBuilder we can reuse for every property name
-    val nameBuffer = Array.ofDim[Char](64)
+    // Initialize a StringBuilder we can reuse for every property name
     val nameBuilder = new java.lang.StringBuilder
 
     @tailrec def readName(nameReader: ParsingJStringReader): String = {
-      val n = nameReader.read(nameBuffer, 0, nameBuffer.length)
+      val n = nameReader.read(ctx.charBuffer, 0, ctx.charBuffer.length)
       if(n <= 0) nameBuilder.toString else {
-        nameBuilder.append(nameBuffer, 0, n)
+        nameBuilder.append(ctx.charBuffer, 0, n)
         readName(nameReader)
       }
     }

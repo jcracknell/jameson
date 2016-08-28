@@ -1,6 +1,8 @@
 package jameson
 package dec
 
+import jameson.util.IOUtil
+
 class InstanceJStringReader(val path: JPath, str: String) extends JStringReader {
   private var closed = false
   private var rp = 0
@@ -27,6 +29,14 @@ class InstanceJStringReader(val path: JPath, str: String) extends JStringReader 
       }
       rp - start
     }
+  }
+
+  def readAll(): String = {
+    assertOpen()
+
+    val result = if(0 == rp) str else str.substring(rp)
+    rp = str.length
+    result
   }
 
   def discard(): Unit = {

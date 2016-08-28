@@ -1,6 +1,7 @@
 package jameson
 
 import java.io.{Reader, Writer}
+
 import jameson.enc._
 import scala.collection.{immutable => sci}
 import scala.language.implicitConversions
@@ -155,6 +156,7 @@ object JString extends JValue.Type {
 
 trait JStringReader extends Reader with JReader {
   def path: JPath
+  def readAll(): String
   def copy(): JString
   override def toString: String = s"JStringReader($path)"
 }

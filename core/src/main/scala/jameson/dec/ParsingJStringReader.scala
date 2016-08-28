@@ -55,6 +55,8 @@ class ParsingJStringReader(ctx: JParsingContext, quote: Int) extends JStringRead
     }
   }
 
+  def readAll(): String = IOUtil.readAll(this, ctx.charBuffer)
+
   private def readEscape(): Int = ctx.peek(1) match {
     case DOUBLE_QUOTE => ctx.drop(2); DOUBLE_QUOTE
     case BACKSLASH => ctx.drop(2); BACKSLASH
