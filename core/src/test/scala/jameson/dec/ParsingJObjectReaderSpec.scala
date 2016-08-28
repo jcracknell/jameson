@@ -5,7 +5,7 @@ import org.scalatest.{FunSpec, Matchers}
 
 class ParsingJObjectReaderSpec extends FunSpec with Matchers {
   describe("capture") {
-    Jameson.decode(""" { "present": 1, "mismatched": null } """) {
+    Jameson.read(""" { "present": 1, "mismatched": null } """) {
       case reader: JObjectReader =>
         val present = reader.capture("present") { case JNumber(v) => v }
         val mismatched = reader.capture("mismatched") { case s: JStringReader => s.copy() }
