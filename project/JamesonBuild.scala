@@ -2,9 +2,13 @@ import sbt._
 import sbt.Keys._
 
 object JamesonBuild extends Build {
+  lazy val `jameson` = (project in file("."))
+    .aggregate(`jameson-core`, `jameson-examples`)
+
   lazy val `jameson-core` = (project in file("core"))
     .settings(commonSettings)
     .settings(
+      name := "jameson",
       libraryDependencies ++= Seq(
         "net.liftweb"   %% "lift-json" % "2.6.+" % "test",
         "org.scalatest" %% "scalatest" % "3.0.+" % "test"
@@ -23,8 +27,18 @@ object JamesonBuild extends Build {
       )
     )
 
+  lazy val `jameson-examples` = (project in file("examples"))
+    .settings(commonSettings)
+    .dependsOn(`jameson-core`)
+    .settings(
+      libraryDependencies ++= Seq(
+        "org.scalatest" %% "scalatest" % "3.0.+" % "test"
+      )
+    )
+
   def commonSettings = List(
     version := shell("git", "describe", "--tags", "--always", "--dirty").trim(),
+    organization := "jameson",
     scalaVersion := "2.11.8",
     scalacOptions := Seq(
       "-encoding", "UTF-8",
