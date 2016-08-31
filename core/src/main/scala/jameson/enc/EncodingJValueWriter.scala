@@ -1,6 +1,8 @@
 package jameson
 package enc
 
+import scala.annotation.tailrec
+
 class EncodingJValueWriter(ctx: JEncodingContext) extends JValueWriter with AutoCloseable {
   private var _path = ctx.path
   private var consumed = false
@@ -22,7 +24,8 @@ class EncodingJValueWriter(ctx: JEncodingContext) extends JValueWriter with Auto
 
   def writeNumber(value: Double): Unit = {
     consume()
-    ctx.writer.write(value.toString)
+
+    JNumber.encode(value, ctx.writer)
   }
 
   def writeNumber(number: JNumber): Unit = writeNumber(number.value)

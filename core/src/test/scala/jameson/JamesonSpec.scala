@@ -16,8 +16,13 @@ class JamesonSpec extends FunSpec with Matchers {
       Jameson.write(JString("foo")) should be (""" "foo" """.trim)
     }
     it("should write JNumbers") {
-      //Jameson.write(JNumber(0)) should be ("""0""")
-      Jameson.write(JNumber(1.23)) should be ("""1.23""")
+      Jameson.write(JNumber(0)) should be ("0")
+      Jameson.write(JNumber(1)) should be ("1")
+      Jameson.write(JNumber(Int.MaxValue)) should be (Int.MaxValue.toString)
+      Jameson.write(JNumber(Int.MinValue)) should be (Int.MinValue.toString)
+      Jameson.write(JNumber(1.23)) should be ("1.23")
+      Jameson.write(JNumber(0.12)) should be ("0.12")
+      Jameson.write(JNumber(2e20)) should be ("2E20")
     }
     it("should write JObjects") {
       Jameson.write(JObject()) should be ("""{}""")
