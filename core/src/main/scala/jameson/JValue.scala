@@ -3,7 +3,6 @@ package jameson
 import java.io.{Reader, Writer}
 
 import jameson.enc._
-import scala.annotation.tailrec
 import scala.collection.{immutable => sci}
 import scala.language.implicitConversions
 
@@ -130,49 +129,13 @@ class JNumber(val value: Double) extends JScalar with JReader {
     case _ => false
   }
 
-  override def toString: String = {
-    val sw = new java.io.StringWriter
-    sw.write("JNumber(")
-    JNumber.encode(value, sw)
-    sw.write(')')
-    sw.toString
-  }
+  override def toString: String = s"JNumber($value)"
 }
 
 object JNumber extends JValue.Type {
   def apply(repr: JValue.Repr[JNumber]): JNumber = repr.value
 
   def unapply(n: JNumber): Option[Double] = if(n == null) None else Some(n.value)
-
-  def encode(value: Double): String = {
-    val sw = new java.io.StringWriter
-    encode(value, sw)
-    sw.toString
-  }
-
-  def encode(value: Double, writer: java.io.Writer): Unit = {
-    val intVal = value.toInt
-    if(intVal.toDouble == value) writer.write(intVal.toString) else {
-      val str = value.toString
-
-      @tailrec def int(i: Int): Unit = if(i == str.length) writer.write(str, 0, i) else str.charAt(i) match {
-        case '.' =>
-          writer.write(str, 0, i)
-          frac(i + 1, i, i)
-        case _ => int(i + 1)
-      }
-
-      @tailrec def frac(i: Int, s: Int, e: Int): Unit = if(i == str.length) writer.write(str, s, e - s) else str.charAt(i) match {
-        case '0' => frac(i + 1, s, e)
-        case 'e' | 'E' =>
-          writer.write(str, s, e - s)
-          writer.write(str, i, str.length - i)
-        case _ => frac(i + 1, s, i + 1)
-      }
-
-      int(0)
-    }
-  }
 
   implicit val ordering: Ordering[JNumber] = Ordering.by(_.value)
 }

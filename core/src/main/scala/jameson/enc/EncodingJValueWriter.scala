@@ -25,7 +25,7 @@ class EncodingJValueWriter(ctx: JEncodingContext) extends JValueWriter with Auto
   def writeNumber(value: Double): Unit = {
     consume()
 
-    JNumber.encode(value, ctx.writer)
+    EncodingJValueWriter.encodeNumber(value, ctx.writer)
   }
 
   def writeNumber(number: JNumber): Unit = writeNumber(number.value)
@@ -97,5 +97,35 @@ class EncodingJValueWriter(ctx: JEncodingContext) extends JValueWriter with Auto
       throw new IllegalStateException("JValueWriter was not consumed.")
 
     closed = true
+  }
+}
+
+object EncodingJValueWriter {
+  def encodeNumber(value: Double, writer: java.io.Writer): Unit = {
+    val intVal = value.toInt
+    if(intVal.toDouble == value) writer.write(intVal.toString) else {
+      val str = value.toString
+      val strLen = str.length
+
+      // N.B. that a string representation of a double always contains a decimal point
+      @tailrec def int(i: Int): Unit = str.charAt(i) match {
+        case '.' =>
+          writer.write(str, 0, i)
+          frac(i + 1, i, i)
+        case _ => int(i + 1)
+      }
+
+      @tailrec def frac(i: Int, s: Int, e: Int): Unit = if(i == strLen) writer.write(str, s, e - s) else str.charAt(i) match {
+        case '0' => frac(i + 1, s, e)
+        case 'e' | 'E' =>
+          if(i == e) writer.write(str, s, strLen - i) else {
+            writer.write(str, s, e - s)
+            writer.write(str, i, strLen - i)
+          }
+        case _ => frac(i + 1, s, i + 1)
+      }
+
+      int(0)
+    }
   }
 }
