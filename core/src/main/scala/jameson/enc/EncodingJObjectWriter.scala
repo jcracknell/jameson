@@ -54,7 +54,7 @@ class EncodingJObjectWriter(ctx: JEncodingContext, objectStyle: JObjectStyle) ex
 
     i += 1
 
-    EncodingJStringWriter.encode(name, ctx.writer, ctx.options)
+    EncodingJValueWriter.encodeString(name, ctx.writer, ctx.options)
     objectStyle.writeAssign(ctx.writer)
 
     ctx.pathDown(name)

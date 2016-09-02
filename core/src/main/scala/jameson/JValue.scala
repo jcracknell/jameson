@@ -1,8 +1,6 @@
 package jameson
 
-import java.io.{Reader, Writer}
-
-import jameson.enc._
+import java.io.Reader
 import scala.collection.{immutable => sci}
 import scala.language.implicitConversions
 
@@ -148,10 +146,6 @@ object JString extends JValue.Type {
   val empty: JString = new JString("")
 
   implicit val ordering: Ordering[JString] = Ordering.by(_.value)
-
-  def encode(str: String, writer: Writer): Unit = EncodingJStringWriter.encode(str, writer)
-
-  def encode(str: String): String = EncodingJStringWriter.encode(str)
 }
 
 trait JStringReader extends Reader with JReader {
@@ -229,7 +223,7 @@ class JObject protected (
   }
 
   override def toString: String =
-    seq.iterator.map({ case (n, v) => JString.encode(n) + ": " + v.toString }).mkString("JObject(", ", ", ")")
+    seq.iterator.map({ case (n, v) => enc.EncodingJValueWriter.encodeString(n) + ": " + v.toString }).mkString("JObject(", ", ", ")")
 }
 
 object JObject extends JValue.Type {

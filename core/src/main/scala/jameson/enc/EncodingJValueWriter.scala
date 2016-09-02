@@ -2,6 +2,7 @@ package jameson
 package enc
 
 import scala.annotation.tailrec
+import java.io.Writer
 
 class EncodingJValueWriter(ctx: JEncodingContext) extends JValueWriter with AutoCloseable {
   private var _path = ctx.path
@@ -33,7 +34,7 @@ class EncodingJValueWriter(ctx: JEncodingContext) extends JValueWriter with Auto
   def writeString(value: String): Unit = {
     consume()
 
-    EncodingJStringWriter.encode(value, ctx.writer, ctx.options)
+    EncodingJValueWriter.encodeString(value, ctx.writer, ctx.options)
   }
 
   def writeString(str: JString): Unit = writeString(str.value)
@@ -50,7 +51,6 @@ class EncodingJValueWriter(ctx: JEncodingContext) extends JValueWriter with Auto
     consume()
 
     val arrayStyle = ctx.options.arrayStyleAt(ctx.path, sizeHint)
-
     using(new EncodingJArrayWriter(ctx, arrayStyle)) { arrayWriter =>
       arrayStyle.writeStart(ctx.writer)
       loan(arrayWriter)
@@ -127,5 +127,116 @@ object EncodingJValueWriter {
 
       int(0)
     }
+  }
+
+  def encodeString(str: String): String = encodeString(str, new Jameson.EncodingOptions())
+
+  def encodeString(str: String, options: JEncodingOptions): String = {
+    val sw = new java.io.StringWriter(128)
+    encodeString(str, sw, options)
+    sw.toString
+  }
+
+  def encodeString(str: String, writer: Writer): Unit =
+    encodeString(str, writer, new Jameson.EncodingOptions())
+
+  def encodeString(str: String, writer: Writer, options: JEncodingOptions): Unit = {
+    writer.write('"')
+    encodeStringFragment(str, writer, options)
+    writer.write('"')
+  }
+
+  def encodeStringFragment(c: Char, writer: Writer): Unit =
+    encodeStringFragment(c, writer, new Jameson.EncodingOptions())
+
+  def encodeStringFragment(c: Char, writer: Writer, options: JEncodingOptions): Unit = {
+    val esc = escape(c, options)
+    if(esc != null) writer.write(esc) else writer.write(c.toInt)
+  }
+
+  def encodeStringFragment(str: String, writer: Writer): Unit =
+    encodeStringFragment(str, writer, new Jameson.EncodingOptions())
+
+  def encodeStringFragment(str: String, writer: Writer, options: JEncodingOptions): Unit =
+    encodeStringFragment(str, 0, str.length, writer, options)
+
+  def encodeStringFragment(str: String, offset: Int, length: Int, writer: Writer): Unit =
+    encodeStringFragment(str, offset, length, writer, new Jameson.EncodingOptions())
+
+  def encodeStringFragment(chars: Array[Char], offset: Int, length: Int, writer: Writer, options: JEncodingOptions): Unit = {
+    val end = offset + length
+    var rp = offset
+    var wp = offset
+
+    while(rp < end) {
+      val esc = escape(chars(rp), options)
+      if(esc != null) {
+        if(wp < rp) {
+          writer.write(chars, wp, rp - wp)
+        }
+        wp = rp + 1
+
+        writer.write(esc, 0, esc.length)
+      }
+
+      rp += 1
+    }
+
+    if(wp < rp) {
+      writer.write(chars, wp, rp - wp)
+    }
+  }
+
+  def encodeStringFragment(str: String, offset: Int, length: Int, writer: Writer, options: JEncodingOptions): Unit = {
+    val end = offset + length
+    var rp = offset
+    var wp = offset
+
+    while(rp < end) {
+      val esc = escape(str.charAt(rp), options)
+      if(esc != null) {
+        if(wp < rp) {
+          writer.write(str, wp, rp - wp)
+        }
+        wp = rp + 1
+
+        writer.write(esc, 0, esc.length)
+      }
+
+      rp += 1
+    }
+
+    if(wp < rp) {
+      writer.write(str, wp, rp - wp)
+    }
+  }
+
+  private def escape(c: Char, options: JEncodingOptions): Array[Char] = c match {
+    case '"'  => Array('\\', '"')
+    case '\\' => Array('\\', '\\')
+    case '\b' => Array('\\', 'b')
+    case '\f' => Array('\\', 'f')
+    case '\n' => Array('\\', 'n')
+    case '\r' => Array('\\', 'r')
+    case '\t' => Array('\\', 't')
+    case '/' if options.escapeSlashes => Array('\\', '/')
+    case c => if(!shouldEscape(c, options)) null else {
+      val i = c.toInt
+      Array('\\', 'u', hex(i >>> 12), hex(i >>> 8), hex(i >>> 4), hex(i))
+    }
+  }
+
+  def shouldEscape(c: Char, options: JEncodingOptions): Boolean = c match {
+    case '\'' if options.escapeQuotes => true
+    case c if options.escapeNonASCII && (c > '~' || ' ' > c) => true
+    case c => Character.isISOControl(c)
+  }
+
+  private def hex(i: Int): Char = i & 0xF match {
+    case 0x0 => '0'  case 0x4 => '4'  case 0x8 => '8'  case 0xC => 'c'
+    case 0x1 => '1'  case 0x5 => '5'  case 0x9 => '9'  case 0xD => 'd'
+    case 0x2 => '2'  case 0x6 => '6'  case 0xA => 'a'  case 0xE => 'e'
+    case 0x3 => '3'  case 0x7 => '7'  case 0xB => 'b'  case 0xF => 'f'
+    case _ => throw new Exception("Invalid nibble")
   }
 }

@@ -43,7 +43,7 @@ object JPath extends JPath {
     protected def renderTo(writer: Writer): Unit = {
       parent.renderTo(writer)
       writer.write("[")
-      JString.encode(name, writer)
+      jameson.enc.EncodingJValueWriter.encodeString(name, writer)
       writer.write("]")
     }
   }
