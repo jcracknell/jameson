@@ -17,14 +17,16 @@ object JamesonBuild extends Build {
       mappings in (Compile, packageBin) ++= mappings.in(`jameson-macros`, Compile, packageBin).value,
       mappings in (Compile, packageSrc) ++= mappings.in(`jameson-macros`, Compile, packageSrc).value
     )
-    .dependsOn(`jameson-macros`)
+    .dependsOn(`jameson-macros` % "compile-internal, test-internal")
 
   lazy val `jameson-macros` = (project in file("macros"))
     .settings(commonSettings)
     .settings(
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value
-      )
+      ),
+      publish := {},
+      publishLocal := {}
     )
 
   lazy val `jameson-examples` = (project in file("examples"))
@@ -33,7 +35,9 @@ object JamesonBuild extends Build {
     .settings(
       libraryDependencies ++= Seq(
         "org.scalatest" %% "scalatest" % "3.0.+" % "test"
-      )
+      ),
+      publish := {},
+      publishLocal := {}
     )
 
   def commonSettings = List(
