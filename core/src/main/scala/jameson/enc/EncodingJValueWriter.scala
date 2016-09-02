@@ -107,14 +107,6 @@ object EncodingJValueWriter {
       val str = value.toString
       val strLen = str.length
 
-      // N.B. that a string representation of a double always contains a decimal point
-      @tailrec def int(i: Int): Unit = str.charAt(i) match {
-        case '.' =>
-          writer.write(str, 0, i)
-          frac(i + 1, i, i)
-        case _ => int(i + 1)
-      }
-
       @tailrec def frac(i: Int, s: Int, e: Int): Unit = if(i == strLen) writer.write(str, s, e - s) else str.charAt(i) match {
         case '0' => frac(i + 1, s, e)
         case 'e' | 'E' =>
@@ -125,7 +117,12 @@ object EncodingJValueWriter {
         case _ => frac(i + 1, s, i + 1)
       }
 
-      int(0)
+      // N.B. that a string representation of a double always contains a decimal point
+      var i = 0
+      while(str.charAt(i) != '.') i += 1
+
+      writer.write(str, 0, i)
+      frac(i + 1, i, i)
     }
   }
 
