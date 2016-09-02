@@ -101,28 +101,33 @@ class EncodingJValueWriter(ctx: JEncodingContext) extends JValueWriter with Auto
 }
 
 object EncodingJValueWriter {
+  def encodeNumber(value: Double): String = {
+    val sw = new java.io.StringWriter(16)
+    encodeNumber(value, sw)
+    sw.toString
+  }
+
   def encodeNumber(value: Double, writer: java.io.Writer): Unit = {
     val intVal = value.toInt
     if(intVal.toDouble == value) writer.write(intVal.toString) else {
       val str = value.toString
-      val strLen = str.length
+      val len = str.length
 
-      @tailrec def frac(i: Int, s: Int, e: Int): Unit = if(i == strLen) writer.write(str, s, e - s) else str.charAt(i) match {
-        case '0' => frac(i + 1, s, e)
-        case 'e' | 'E' =>
-          if(i == e) writer.write(str, s, strLen - i) else {
-            writer.write(str, s, e - s)
-            writer.write(str, i, strLen - i)
-          }
-        case _ => frac(i + 1, s, i + 1)
-      }
+      @tailrec def int(i: Int): Unit =
+        if(str.charAt(i) == '.') frac(i + 1, i) else int(i + 1)
 
-      // N.B. that a string representation of a double always contains a decimal point
-      var i = 0
-      while(str.charAt(i) != '.') i += 1
+      @tailrec def frac(i: Int, e: Int): Unit =
+        if(i == len) writer.write(str, 0, e) else str.charAt(i) match {
+          case '0' => frac(i + 1, e)
+          case 'E' =>
+            if(i == e) writer.write(str, 0, len) else {
+              writer.write(str, 0, e)
+              writer.write(str, i, len - i)
+            }
+          case _ => frac(i + 1, i + 1)
+        }
 
-      writer.write(str, 0, i)
-      frac(i + 1, i, i)
+      int(1)
     }
   }
 
