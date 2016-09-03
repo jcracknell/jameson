@@ -34,7 +34,8 @@ object JamesonBuild extends Build {
     .dependsOn(`jameson-core`)
     .settings(
       libraryDependencies ++= Seq(
-        "io.spray" %% "spray-json" % "1.3.+" % "test"
+        "com.typesafe.play" %% "play-json" % "latest.release" % "test",
+        "io.spray" %% "spray-json" % "latest.release" % "test"
       ),
       publish := {},
       publishLocal := {}

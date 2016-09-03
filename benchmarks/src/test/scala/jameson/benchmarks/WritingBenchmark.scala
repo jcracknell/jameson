@@ -56,6 +56,62 @@ object WritingBenchmark extends Benchmark {
       }
     }
   }
+
+  benchmark("play-json") {
+    import play.api.libs.json._
+
+    Json.stringify(Json.obj(
+      "@context" -> "http://schema.org",
+      "@type" -> "Invoice",
+      "broker" -> Json.obj(
+        "@type" -> "LocalBusiness",
+        "name" -> "ACME Home Heating"
+      ),
+      "accountId" -> "xxxx-xxxx-xxxx-1234",
+      "customer" -> Json.obj(
+        "@type" -> "Person",
+        "name" -> "Jane Doe"
+      ),
+      "paymentDueDate" -> "2015-01-30",
+      "minimumPaymentDue" -> Json.obj(
+        "@type" -> "PaymentSpecification",
+        "price" -> 0.00d,
+        "priceCurrency" -> "USD"
+      ),
+      "totalPaymentDue" -> Json.obj(
+        "@type" -> "PaymentSpecification",
+        "price" -> 0.00d,
+        "priceCurrency" -> "USD"
+      ),
+      "paymentStatus" -> "http://schema.org/PaymentComplete",
+      "referencesOrder" -> Json.arr(
+        Json.obj(
+          "@type" -> "Order",
+          "description" -> "furnace",
+          "orderDate" -> "2014-12-01",
+          "orderNumber" -> "123ABC",
+          "paymentMethod" -> "http://purl.org/goodrelations/v1#ByInvoice",
+          "orderedItem" -> Json.obj(
+            "@type" -> "Product",
+            "name" -> "ACME Furnace 3000",
+            "productId" -> "ABC123"
+          )
+        ),
+        Json.obj(
+          "@type" -> "Order",
+          "description" -> "furnace installation",
+          "orderDate" -> "2014-12-01",
+          "orderNumber" -> "123ABC",
+          "paymentMethod" -> "http://purl.org/goodrelations/v1#ByInvoice",
+          "orderedItem" -> Json.obj(
+            "@type" -> "Service",
+            "description" -> "furnace installation"
+          )
+        )
+      )
+    ))
+  }
+
   benchmark("spray-json") {
     import spray.json._
 
