@@ -3,7 +3,11 @@ import sbt.Keys._
 
 object JamesonBuild extends Build {
   lazy val `jameson` = (project in file("."))
-    .aggregate(`jameson-core`, `jameson-examples`)
+    .aggregate(
+      `jameson-core`,
+      `jameson-benchmarks`,
+      `jameson-examples`
+    )
 
   lazy val `jameson-core` = (project in file("core"))
     .settings(commonSettings)
@@ -25,13 +29,21 @@ object JamesonBuild extends Build {
       publishLocal := {}
     )
 
-  lazy val `jameson-examples` = (project in file("examples"))
+  lazy val `jameson-benchmarks` = (project in file("benchmarks"))
     .settings(commonSettings)
     .dependsOn(`jameson-core`)
     .settings(
       libraryDependencies ++= Seq(
         "io.spray" %% "spray-json" % "1.3.+" % "test"
       ),
+      publish := {},
+      publishLocal := {}
+    )
+
+  lazy val `jameson-examples` = (project in file("examples"))
+    .settings(commonSettings)
+    .dependsOn(`jameson-core`)
+    .settings(
       publish := {},
       publishLocal := {}
     )
