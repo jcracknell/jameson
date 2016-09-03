@@ -9,12 +9,15 @@ trait Benchmark extends App {
   def benchmark(description: String)(op: => Unit): Unit = {
     println(s"[$description]")
     println("- Warming up...")
+
+    System.gc()
     var i = 0
     while(i < iterations) {
       op
       i += 1
     }
 
+    System.gc()
     val start = System.nanoTime()
     i = 0
     while(i < iterations) {
