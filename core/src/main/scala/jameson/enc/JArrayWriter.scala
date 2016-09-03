@@ -35,25 +35,7 @@ trait JArrayWriter {
   def writeArray(loan: JArrayWriter => Unit): JArrayWriter =
     writeArray(-1)(loan)
 
-  /** Writes an element with an array value where the elements of the array
-    * are based on those of the provided collection.
-    *
-    * @param coll The collection whose elements will form the basis for the array.
-    * @tparam A The element type of the provided collection.
-    */
-  def writeArray[A](coll: Traversable[A])(each: (A, JArrayWriter) => Unit): JArrayWriter =
-    writeArray(coll.size) { arrayWriter => coll foreach { a => each(a, arrayWriter) } }
-
   /** Writes an element with an object value. */
   def writeObject(loan: JObjectWriter => Unit): JArrayWriter =
     writeObject(-1)(loan)
-
-  /** Writes an element with an object value where the properties of the object are based
-    * on the elements of the provided collection.
-    *
-    * @param coll The collection whose elements will form the basis for the object.
-    * @tparam A The element type of the provided collection.
-    */
-  def writeObject[A](coll: Traversable[A])(each: (A, JObjectWriter) => Unit): JArrayWriter =
-    writeObject(coll.size) { objectWriter => coll foreach { a => each(a, objectWriter) } }
 }

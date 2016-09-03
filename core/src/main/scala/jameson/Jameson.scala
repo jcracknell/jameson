@@ -62,21 +62,6 @@ object Jameson {
     }
   }
 
-  def writeArrayFrom[A](coll: Traversable[A])(each: (A, JArrayWriter) => Unit): String =
-    writeArrayFrom(new EncodingOptions())(coll)(each)
-
-  def writeArrayFrom[A](options: EncodingOptions)(coll: Traversable[A])(each: (A, JArrayWriter) => Unit): String = {
-    val sw = new StringWriter
-    writeArrayFrom(sw, options)(coll)(each)
-    sw.toString
-  }
-
-  def writeArrayFrom[A](writer: Writer)(coll: Traversable[A])(each: (A, JArrayWriter) => Unit): Unit =
-    writeArrayFrom(writer, new EncodingOptions())(coll)(each)
-
-  def writeArrayFrom[A](writer: Writer, options: EncodingOptions)(coll: Traversable[A])(each: (A, JArrayWriter) => Unit): Unit =
-    writeArray(writer, coll.size, options) { arrayWriter => coll foreach { a => each(a, arrayWriter) } }
-
   def writeObject(loan: JObjectWriter => Unit): String = writeObject(new EncodingOptions())(loan)
 
   def writeObject(sizeHint: Int)(loan: JObjectWriter => Unit): String =
@@ -106,21 +91,6 @@ object Jameson {
       loan(objectWriter)
     }
   }
-
-  def writeObjectFrom[A](coll: Traversable[A])(each: (A, JObjectWriter) => Unit): String =
-    writeObjectFrom(new EncodingOptions())(coll)(each)
-
-  def writeObjectFrom[A](options: EncodingOptions)(coll: Traversable[A])(each: (A, JObjectWriter) => Unit): String = {
-    val sw = new StringWriter
-    writeObjectFrom(sw, options)(coll)(each)
-    sw.toString
-  }
-
-  def writeObjectFrom[A](writer: Writer)(coll: Traversable[A])(each: (A, JObjectWriter) => Unit): Unit =
-    writeObjectFrom(writer, new EncodingOptions())(coll)(each)
-
-  def writeObjectFrom[A](writer: Writer, options: EncodingOptions)(coll: Traversable[A])(each: (A, JObjectWriter) => Unit): Unit =
-    writeObject(writer, coll.size, options) { objectWriter => coll foreach { a => each(a, objectWriter) } }
 
   case class ParsingOptions(
     allowComments: Boolean = false,
