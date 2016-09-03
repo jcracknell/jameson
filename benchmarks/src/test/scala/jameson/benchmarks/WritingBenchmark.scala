@@ -1,7 +1,9 @@
 package jameson.examples
 
 object WritingBenchmark extends Benchmark {
-  benchmark(50000)("jameson") {
+  def iterations: Int = 50000
+
+  benchmark("jameson") {
     import jameson._
 
     Jameson.writeObject { _
@@ -54,7 +56,7 @@ object WritingBenchmark extends Benchmark {
       }
     }
   }
-  benchmark(50000)("spray-json") {
+  benchmark("spray-json") {
     import spray.json._
 
     JsObject(

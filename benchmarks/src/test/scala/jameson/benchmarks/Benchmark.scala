@@ -4,7 +4,9 @@ package examples
 import java.time._
 
 trait Benchmark extends App {
-  def benchmark(iterations: Int)(description: String)(op: => Unit): Unit = {
+  def iterations: Int
+
+  def benchmark(description: String)(op: => Unit): Unit = {
     println(s"[$description]")
     println("- Warming up...")
     var i = 0
