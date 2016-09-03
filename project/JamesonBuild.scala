@@ -9,10 +9,6 @@ object JamesonBuild extends Build {
     .settings(commonSettings)
     .settings(
       name := "jameson",
-      libraryDependencies ++= Seq(
-        "net.liftweb"   %% "lift-json" % "2.6.+" % "test",
-        "org.scalatest" %% "scalatest" % "3.0.+" % "test"
-      ),
       // Include macro implementations in JARs
       mappings in (Compile, packageBin) ++= mappings.in(`jameson-macros`, Compile, packageBin).value,
       mappings in (Compile, packageSrc) ++= mappings.in(`jameson-macros`, Compile, packageSrc).value
@@ -34,7 +30,7 @@ object JamesonBuild extends Build {
     .dependsOn(`jameson-core`)
     .settings(
       libraryDependencies ++= Seq(
-        "org.scalatest" %% "scalatest" % "3.0.+" % "test"
+        "io.spray" %% "spray-json" % "1.3.+" % "test"
       ),
       publish := {},
       publishLocal := {}
@@ -58,6 +54,10 @@ object JamesonBuild extends Build {
       "-Ywarn-numeric-widen",
       "-Ywarn-unused",
       "-Ywarn-unused-import"
+    ),
+    libraryDependencies ++= Seq(
+      "net.liftweb"   %% "lift-json" % "2.6.+" % "test",
+      "org.scalatest" %% "scalatest" % "3.0.+" % "test"
     )
   )
 
