@@ -4,41 +4,7 @@ import java.io.Reader
 import scala.collection.{immutable => sci}
 import scala.language.implicitConversions
 
-sealed trait JLookup {
-  def isUndefined: Boolean
-
-  /** Attempts to retrieve the value of the property with the specified name. Returns
-    * [[JUndefined]] if there is no such property or the subject is not an object.
-    */
-  def apply(name: String): JLookup
-
-  /** Attempts to retrieve the array element at the specified index. Returns
-    * [[JUndefined]] if there is no such element or the subject is not an array.
-    */
-  def apply(index: Int): JLookup
-
-  /** Attempts to retrieve the value at the specified path relative to the subject. */
-  def apply(path: JPath): JLookup = path.resolve(this)
-
-  /** Attempts to retrieve the value of the property with the specified name. Returns
-    * [[JUndefined]] if there is no such property or the subject is not an object.
-    */
-  def /(name: String): JLookup = apply(name)
-
-  /** Attempts to retrieve the value of the property with the specified name. Returns
-    * [[JUndefined]] if there is no such property or the subject is not an object.
-    */
-  def /(index: Int): JLookup = apply(index)
-}
-
-case object JUndefined extends JLookup {
-  def isUndefined: Boolean = true
-  def apply(name: String): JLookup = JUndefined
-  def apply(index: Int): JLookup = JUndefined
-}
-
-sealed trait JValue extends JLookup {
-  def isUndefined: Boolean = false
+sealed trait JValue {
   def valueType: JValue.Type
 }
 
@@ -81,9 +47,6 @@ sealed trait JReader {
 sealed trait JScalar extends JValue {
   /** Get the native representation of this scalar JSON value. */
   def value: Any
-
-  def apply(name: String): JLookup = JUndefined
-  def apply(index: Int): JLookup = JUndefined
 }
 
 case object JNull extends JScalar with JReader with JValue.Type {
@@ -156,8 +119,7 @@ trait JStringReader extends Reader with JReader {
 }
 
 class JArray(val elements: scala.collection.immutable.IndexedSeq[JValue]) extends JValue {
-  def apply(name: String): JLookup = JUndefined
-  def apply(index: Int): JLookup = if(elements.isDefinedAt(index)) elements(index) else JUndefined
+  def apply(index: Int): JValue = elements(index)
 
   def length: Int = elements.length
 
@@ -206,12 +168,7 @@ class JObject protected (
   val seq: sci.Seq[(String, JValue)],
   val map: sci.Map[String, JValue]
 ) extends JValue {
-  def apply(name: String): JLookup = map.get(name) match {
-    case Some(v) => v
-    case None => JUndefined
-  }
-
-  def apply(index: Int): JLookup = JUndefined
+  def apply(name: String): JValue = map(name)
 
   def valueType: JValue.Type = JObject
 

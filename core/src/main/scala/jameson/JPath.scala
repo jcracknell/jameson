@@ -6,7 +6,6 @@ sealed trait JPath {
   def isBase: Boolean
   def parent: JPath
   def depth: Int
-  def resolve(ctx: JLookup): JLookup
 
   def apply(name: String): JPath.Property = new JPath.Property(this, name)
   def apply(index: Int): JPath.Index = new JPath.Index(this, index)
@@ -27,7 +26,6 @@ object JPath extends JPath {
   def isBase: Boolean = true
   def parent: JPath = throw new UnsupportedOperationException()
   def depth: Int = 0
-  def resolve(ctx: JLookup): JLookup = ctx
 
   protected def renderTo(writer: Writer): Unit = writer.write(".")
 
@@ -38,7 +36,6 @@ object JPath extends JPath {
   case class Property(parent: JPath, name: String) extends JPath {
     def isBase: Boolean = false
     val depth: Int = parent.depth + 1
-    def resolve(ctx: JLookup): JLookup = parent.resolve(ctx)(name)
 
     protected def renderTo(writer: Writer): Unit = {
       parent.renderTo(writer)
@@ -53,7 +50,6 @@ object JPath extends JPath {
 
     def isBase: Boolean = false
     val depth: Int = parent.depth + 1
-    def resolve(ctx: JLookup): JLookup = parent.resolve(ctx)(index)
 
     protected def renderTo(writer: Writer): Unit = {
       parent.renderTo(writer)
