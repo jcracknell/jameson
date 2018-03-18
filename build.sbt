@@ -50,7 +50,7 @@ def commonSettings = Seq(
     IO.readStream(proc.getInputStream, java.nio.charset.Charset.defaultCharset()).trim()
   },
   organization := "jameson",
-  scalaVersion := "2.12.1",
+  scalaVersion := "2.12.4",
   scalacOptions := Seq(
     "-encoding", "UTF-8",
     "-deprecation",
