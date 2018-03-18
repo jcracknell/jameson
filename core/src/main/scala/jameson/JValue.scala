@@ -164,11 +164,18 @@ trait JArrayReader extends JReader {
   override def toString: String = s"JArrayReader($path)"
 }
 
-class JObject protected (
-  val seq: sci.Seq[(String, JValue)],
-  val map: sci.Map[String, JValue]
-) extends JValue {
-  def apply(name: String): JValue = map(name)
+class JObject protected (val seq: sci.Seq[(String, JValue)]) extends JValue {
+  def apply(name: String): JValue = {
+    val iterator = seq.iterator
+    while(iterator.hasNext) {
+      val (key, value) = iterator.next()
+      if(key == name)
+        return value
+    }
+    throw new NoSuchElementException()
+  }
+
+  def get(name: String): Option[JValue] = seq.find(_._1 == name).map(_._2)
 
   def valueType: JValue.Type = JObject
 
@@ -184,17 +191,17 @@ class JObject protected (
 }
 
 object JObject extends JValue.Type {
-  val empty: JObject = new JObject(Vector.empty, Map.empty)
+  val empty: JObject = new JObject(Vector.empty)
 
   def apply(): JObject = empty
   def apply(m0: Mapping, ms: Mapping*): JObject = builder.add(m0.tup).add(ms.view.map(_.tup)).result
-  def apply(map: Map[String, JValue]): JObject = new JObject(map.to[sci.Seq], map)
-  def apply(seq: Seq[(String, JValue)]): JObject = builder.add(seq).result
+  def apply(seq: sci.Seq[(String, JValue)]): JObject = new JObject(seq)
+  def apply(entries: Iterable[(String, JValue)]): JObject = apply(entries.toSeq)
 
   def unapplySeq(o: JObject): Option[Seq[(String, JValue)]] = if(o == null) None else Some(o.seq)
 
   def builder: Builder = builder(JObject.empty)
-  def builder(o: JObject): Builder = new BuilderImpl(o.seq, o.map)
+  def builder(o: JObject): Builder = new BuilderImpl(o.seq)
 
   class Mapping(val tup: (String, JValue)) extends AnyVal
   object Mapping {
@@ -208,20 +215,18 @@ object JObject extends JValue.Type {
     def add(m0: (String, JValue), ms: (String, JValue)*): Builder = add(m0).add(ms)
   }
 
-  protected class BuilderImpl(
-    protected var seq: sci.Seq[(String, JValue)],
-    protected var map: sci.Map[String, JValue]
-  ) extends Builder {
-    def result: JObject = new JObject(seq, map)
+  protected class BuilderImpl(protected var seq: sci.Seq[(String, JValue)]) extends Builder {
+    private var keySet = seq.map(_._1).toSet
+
+    def result: JObject = new JObject(seq)
 
     def add(m: (String, JValue)): Builder = {
-      val key = m._1
-      if(map.contains(key)) {
-        seq = seq.filter(_._1 != key) :+ m
+      if(keySet(m._1)) {
+        seq = seq.filter(_._1 != m._1) :+ m
       } else {
-        seq :+= m
+        keySet = keySet + m._1
+        seq = seq :+ m
       }
-      map += m
       this
     }
   }
