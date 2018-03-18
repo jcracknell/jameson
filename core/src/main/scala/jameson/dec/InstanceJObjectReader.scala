@@ -5,7 +5,7 @@ class InstanceJObjectReader(val path: JPath, obj: JObject) extends BaseJObjectRe
   override protected def consume(f: (String, JReader) => Unit): Unit = {
     guard()
 
-    val iterator = obj.seq.iterator
+    val iterator = obj.entries.iterator
     while(iterator.hasNext) {
       val (name, value) = iterator.next()
       value match {

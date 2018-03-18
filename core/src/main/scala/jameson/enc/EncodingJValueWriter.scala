@@ -59,7 +59,7 @@ class EncodingJValueWriter(ctx: JEncodingContext) extends JValueWriter with Auto
   }
 
   def writeArray(arr: JArray): Unit =
-    writeArray(arr.elements.length) { aw => arr.elements foreach { el => aw.write(el) } }
+    writeArray(arr.length) { aw => for(el <- arr) { aw.write(el) } }
 
   def writeObject(sizeHint: Int)(loan: JObjectWriter => Unit): Unit = {
     consume()
@@ -73,7 +73,7 @@ class EncodingJValueWriter(ctx: JEncodingContext) extends JValueWriter with Auto
   }
 
   def writeObject(obj: JObject): Unit =
-    writeObject(obj.seq.length) { ow => obj.seq foreach { case (name, value) => ow.write(name, value) } }
+    writeObject(obj.entries.length) { ow => obj.entries foreach { case (name, value) => ow.write(name, value) } }
 
   private def consume(): Unit = {
     if(consumed)

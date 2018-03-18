@@ -1,7 +1,8 @@
 package jameson
 
 import java.io.Reader
-import scala.collection.{immutable => sci}
+import scala.collection.generic.CanBuildFrom
+import scala.collection.{immutable => sci, mutable => scm}
 import scala.language.implicitConversions
 
 sealed trait JValue {
@@ -118,12 +119,18 @@ trait JStringReader extends Reader with JReader {
   override def toString: String = s"JStringReader($path)"
 }
 
-class JArray(val elements: scala.collection.immutable.IndexedSeq[JValue]) extends JValue {
+class JArray(private val elements: sci.IndexedSeq[JValue])
+  extends JValue
+  with scala.collection.immutable.IndexedSeq[JValue]
+  with scala.collection.IndexedSeqLike[JValue, JArray]
+{
   def apply(index: Int): JValue = elements(index)
 
   def length: Int = elements.length
 
   def valueType: JValue.Type = JArray
+
+  override def newBuilder: JArray.Builder = JArray.newBuilder
 
   override def hashCode(): Int = elements.hashCode()
 
@@ -139,10 +146,47 @@ object JArray extends JValue.Type {
   val empty: JArray = new JArray(Vector.empty)
 
   def apply(): JArray = empty
-  def apply(es: Seq[JValue]): JArray = new JArray(es.toVector)
-  def apply(e0: JValue.Repr[JValue], es: JValue.Repr[JValue]*): JArray = apply(e0.value +: es.view.map(_.value))
+  def apply(es: sci.IndexedSeq[JValue]): JArray = new JArray(es)
+  def apply(es: Iterable[JValue]): JArray = new JArray(es.toIndexedSeq)
+
+  def apply(e0: JValue.Repr[JValue], es: JValue.Repr[JValue]*): JArray = {
+    val builder = JArray.newBuilder
+    builder += e0.value
+    var i = 0
+    for(e <- es) {
+      builder += e.value
+    }
+    builder.result()
+  }
 
   def unapplySeq(a: JArray): Option[IndexedSeq[JValue]] = if(a == null) None else Some(a.elements)
+
+  def newBuilder: Builder = new Builder()
+
+  class Builder protected (private var underlying: scm.Builder[JValue, sci.IndexedSeq[JValue]])
+    extends scala.collection.mutable.Builder[JValue, JArray]
+  {
+    def this() = this(Vector.newBuilder)
+
+    def result(): JArray = new JArray(underlying.result())
+
+    def add(elem: JValue): Builder.this.type = {
+      underlying += elem
+      this
+    }
+
+    def += (elem: JValue): Builder.this.type = add(elem)
+
+    def clear(): Unit = {
+      underlying.clear()
+    }
+  }
+
+  implicit def canBuildFrom: CanBuildFrom[Seq[JValue], JValue, JArray] = _canBuildFrom
+  private object _canBuildFrom extends CanBuildFrom[Seq[JValue], JValue, JArray] {
+    override def apply(from: Seq[JValue]): scala.collection.mutable.Builder[JValue, JArray] = newBuilder
+    override def apply(): scala.collection.mutable.Builder[JValue, JArray] = newBuilder
+  }
 }
 
 trait JArrayReader extends JReader {
@@ -164,71 +208,119 @@ trait JArrayReader extends JReader {
   override def toString: String = s"JArrayReader($path)"
 }
 
-class JObject protected (val seq: sci.Seq[(String, JValue)]) extends JValue {
-  def apply(name: String): JValue = {
-    val iterator = seq.iterator
+class JObject protected (val entries: sci.Seq[(String, JValue)])
+  extends JValue
+  with scala.collection.immutable.Map[String, JValue]
+  with scala.collection.immutable.MapLike[String, JValue, JObject]
+{
+  def get(name: String): Option[JValue] = {
+    val iterator = entries.iterator
     while(iterator.hasNext) {
-      val (key, value) = iterator.next()
-      if(key == name)
-        return value
+      val entry = iterator.next()
+      if(entry._1 == name) return Some(entry._2)
     }
-    throw new NoSuchElementException()
+    None
   }
 
-  def get(name: String): Option[JValue] = seq.find(_._1 == name).map(_._2)
+  override def iterator: Iterator[(String, JValue)] = entries.iterator
+  override def -(key: String): JObject = new JObject(entries.filter(_._1 != key))
+  override def +[V1 >: JValue](kv: (String, V1)): Map[String, V1] = {
+    val builder = Map.newBuilder[String, V1]
+    builder ++= entries
+    builder += kv
+    builder.result()
+  }
+
+  override def empty: JObject = JObject.empty
+  override def toSeq: sci.Seq[(String, JValue)] = entries
+
+  def ++ (o: JObject): JObject = new JObject(entries ++ o.toSeq)
+  def + (m0: JObject.Mapping, ms: JObject.Mapping*): JObject = {
+    val builder = JObject.newBuilder(this).add(m0.tup)
+    for(m <- ms)
+      builder.add(m.tup)
+    builder.result()
+  }
 
   def valueType: JValue.Type = JObject
 
-  override def hashCode(): Int = seq.hashCode()
+  override def hashCode(): Int = entries.hashCode()
 
   override def equals(obj: Any): Boolean = obj match {
-    case that: JObject => this.seq == that.seq
+    case that: JObject => this.entries == that.entries
     case _ => false
   }
 
   override def toString: String =
-    seq.iterator.map({ case (n, v) => enc.EncodingJValueWriter.encodeString(n) + ": " + v.toString }).mkString("JObject(", ", ", ")")
+    entries.iterator.map({ case (n, v) => enc.EncodingJValueWriter.encodeString(n) + ": " + v.toString }).mkString("JObject(", ", ", ")")
+
 }
 
 object JObject extends JValue.Type {
   val empty: JObject = new JObject(Vector.empty)
 
   def apply(): JObject = empty
-  def apply(m0: Mapping, ms: Mapping*): JObject = builder.add(m0.tup).add(ms.view.map(_.tup)).result
-  def apply(seq: sci.Seq[(String, JValue)]): JObject = new JObject(seq)
-  def apply(entries: Iterable[(String, JValue)]): JObject = apply(entries.toSeq)
+  def apply(entries: Map[String, JValue]): JObject = new JObject(entries.to[sci.Seq])
+  def apply(entries: Iterable[(String, JValue)]): JObject = newBuilder.add(entries).result()
 
-  def unapplySeq(o: JObject): Option[Seq[(String, JValue)]] = if(o == null) None else Some(o.seq)
+  def apply(m0: Mapping, ms: Mapping*): JObject = {
+    val builder = newBuilder
+    builder.add(m0.tup)
+    for(m <- ms)
+      builder.add(m.tup)
+    builder.result()
+  }
 
-  def builder: Builder = builder(JObject.empty)
-  def builder(o: JObject): Builder = new BuilderImpl(o.seq)
+  def unapplySeq(o: JObject): Option[Seq[(String, JValue)]] = if (o == null) None else Some(o.entries)
 
   class Mapping(val tup: (String, JValue)) extends AnyVal
   object Mapping {
     implicit def fromTuple(tup: (String, JValue)): Mapping = new Mapping(tup)
   }
 
-  trait Builder {
-    def result: JObject
-    def add(m: (String, JValue)): Builder
-    def add(ms: Iterable[(String, JValue)]): Builder = ms.foldLeft(this)(_ add _)
-    def add(m0: (String, JValue), ms: (String, JValue)*): Builder = add(m0).add(ms)
-  }
+  def newBuilder: Builder = new Builder()
+  def newBuilder(entries: JObject): Builder = new Builder(entries)
 
-  protected class BuilderImpl(protected var seq: sci.Seq[(String, JValue)]) extends Builder {
-    private var keySet = seq.map(_._1).toSet
+  class Builder protected (private var entries: sci.Seq[(String, JValue)])
+    extends scala.collection.mutable.Builder[(String, JValue), JObject]
+  {
+    def this() = this(empty.toSeq)
+    def this(o: JObject) = this(o.toSeq)
 
-    def result: JObject = new JObject(seq)
+    private var keySet = if(entries.isEmpty) Set.empty[String] else {
+      val builder = Set.newBuilder[String]
+      for(e <- entries)
+        builder += e._1
+      builder.result()
+    }
 
-    def add(m: (String, JValue)): Builder = {
-      if(keySet(m._1)) {
-        seq = seq.filter(_._1 != m._1) :+ m
+    override def result(): JObject = new JObject(entries)
+
+    def add(elem: (String, JValue)): Builder.this.type = {
+      val key = elem._1
+      if(keySet.contains(key)) {
+        entries = entries.filter(_._1 != key)
       } else {
-        keySet = keySet + m._1
-        seq = seq :+ m
+        keySet = keySet + key
       }
+      entries = entries :+ elem
       this
     }
+
+    def add(elems: TraversableOnce[(String, JValue)]): Builder.this.type = this ++= elems
+
+    override def +=(elem: (String, JValue)): Builder.this.type = add(elem)
+
+    override def clear(): Unit = {
+      keySet = Set.empty
+      entries = Vector.empty
+    }
+  }
+
+  implicit def canBuildFrom: CanBuildFrom[Map[String, JValue], (String, JValue), JObject] = _canBuildFrom
+  private object _canBuildFrom extends CanBuildFrom[Map[String, JValue], (String, JValue), JObject] {
+    override def apply(from: Map[String, JValue]): scm.Builder[(String, JValue), JObject] = newBuilder
+    override def apply(): scm.Builder[(String, JValue), JObject] = newBuilder
   }
 }
 

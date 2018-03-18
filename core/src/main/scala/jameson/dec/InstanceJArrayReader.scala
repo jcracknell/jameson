@@ -7,7 +7,7 @@ class InstanceJArrayReader(val path: JPath, arr: JArray) extends BaseJArrayReade
     guard()
 
     var i = 0
-    val iterator = arr.elements.iterator
+    val iterator = arr.iterator
     while(iterator.hasNext) {
       val value = iterator.next()
       value match {
@@ -24,7 +24,7 @@ class InstanceJArrayReader(val path: JPath, arr: JArray) extends BaseJArrayReade
 
   override protected def indexedSeqBuilder[A]: mutable.Builder[A, IndexedSeq[A]] = {
     val builder = Vector.newBuilder[A]
-    builder.sizeHint(arr.elements.length)
+    builder.sizeHint(arr.length)
     builder
   }
 

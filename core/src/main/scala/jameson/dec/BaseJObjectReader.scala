@@ -74,7 +74,7 @@ abstract class BaseJObjectReader extends JObjectReader with AutoCloseable { obje
   override def copy(): JObject = {
     guard()
 
-    val builder = JObject.builder
+    val builder = JObject.newBuilder
     consumeUncaptured { (name, reader) =>
       builder.add((name, reader.copy()))
     }
